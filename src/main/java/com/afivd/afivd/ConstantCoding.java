@@ -7,41 +7,48 @@ package com.afivd.afivd;
 import java.util.*;  
 import org.antlr.v4.runtime.Token;
 
+/**
+ * The ConstantCoding class checks for trivial constants that may pose as a risk in terms of fault injection attacks.
+ * Currently, locates variables being assigned a value and being initialized with a value
+ * Covers Fault.CONSTANTCODING
+ */
 public class ConstantCoding extends CBaseListener {
-    CParser parser;
-    int sensitivity;
-    boolean inFunctionDefinition;
-    ArrayList<String> output;
+    // Private Variables
+    private CParser parser;
+    private final int sensitivity;
+    private boolean inFunctionDefinition;
+    private ParsedResults output;
 
-    // Since Java doesn't have a built in tuple class, I'm using three lists
-    // to keep track of the information we need. The information will be matched 
-    // by the index.
-    List<Integer> lineNumbers = new ArrayList<>();
-    List<String> ctxes = new ArrayList<>();
-    List<Integer> values = new ArrayList<>();
+    // Parser Results, correlated by same index value
+    private List<Integer> lineNumbers = new ArrayList<>();
+    private List<String> expressionContent = new ArrayList<>();
+    private List<Integer> values = new ArrayList<>();
 
-
-    public ConstantCoding(CParser parser, int sensitivity, ArrayList<String> output) {
+    /**
+     * ConstantCoding Constructor requires the CParser object, output storage ParsedResults, and a hamming sensitivity
+     * @param parser The CParser Object
+     * @param output A ParsedResults storage object to be appended to
+     * @param sensitivity The Hamming Distance between two constants that will start to trigger our notification message
+     */
+    public ConstantCoding(CParser parser, ParsedResults output, int sensitivity) {
         this.parser = parser;
         this.sensitivity = sensitivity;
-        inFunctionDefinition = false;
+        this.inFunctionDefinition = false;
         this.output = output;
     }
 
-    // Globals are outside of main, when we enter a function defintion we no
-    // longer want to add constants to our list
+    // TODO: remove this later so that we do look inside functions
+    // Globals are outside of main, when we enter a function definition we no longer want to add constants to our list
 
+    // ------------------------------------------ Listener Overrides ---------------------------------------------------
     @Override
     public void enterFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
         inFunctionDefinition = true;
     }
-
-
     @Override
     public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
         inFunctionDefinition = false;
     }
-
     @Override
     public void enterInitDeclarator(CParser.InitDeclaratorContext ctx) {
         Token token = ctx.getStart();
@@ -59,11 +66,10 @@ public class ConstantCoding extends CBaseListener {
                 return;
             }
             lineNumbers.add(lineNumber);
-            ctxes.add(ctx.getText());
+            expressionContent.add(ctx.getText());
             values.add(number);
         }
     }
-
     @Override 
     public void enterAssignmentExpression(CParser.AssignmentExpressionContext ctx) {
         Token token = ctx.getStart();
@@ -81,12 +87,20 @@ public class ConstantCoding extends CBaseListener {
                     return;
                 }
             lineNumbers.add(lineNumber);
-            ctxes.add(ctx.getText());
+            expressionContent.add(ctx.getText());
             values.add(number);
         }
     }
-    
-    // Returns the number of differing bits between x and 0
+
+    // TODO: Add override code to also look at "#define" constants as well.
+
+    // -------------------------------------------- Helper Functions ---------------------------------------------------
+
+    /**
+     * CalculateHamming calculates the Hamming Distance between the passed number and zero
+     * @param x Number to calculate Hamming Distance
+     * @return Hamming distance between the passed number and zero
+     */
     private int calculateHamming(int x) {
         int count = 0;
         while (x != 0) {
@@ -95,8 +109,13 @@ public class ConstantCoding extends CBaseListener {
         }
         return count;
     }
-    
-    // Returns the number of differing bits between a and b
+
+    /**
+     * CompareHamming calculates the hamming distance between the passed two numbers
+     * @param a Integer number
+     * @param b Integer number
+     * @return The Hamming Distance between the two passed numbers
+     */
     private int compareHamming(int a, int b) {
         int count = 0;
         int x = a ^ b;
@@ -106,52 +125,49 @@ public class ConstantCoding extends CBaseListener {
         }
         return count;
     }
-    
-    // Tests if given string could be an integer or not
-    private boolean isInteger(String str) {
-        return str.matches("-?(0x)?[\\p{XDigit}]+");
-    }
-    
-    // Tests if string is hex
-    private boolean isHex(String str) {
-        return str.matches("0x[\\p{XDigit}]+");
-    }
+
+    /**
+     * isInteger takes a given string and determines if it represents an integer.
+     * @param str The string to be tested
+     * @return True if the passed string is an integer, false otherwise.
+     */
+    private boolean isInteger(String str) {return str.matches("-?(0x)?[\\p{XDigit}]+");}
+
+    /**
+     * isHex takes a passed string and determines if it is in hexadecimal format
+     * @param str The string to be tested
+     * @return True if the passed string is a hex string, false otherwise.
+     */
+    private boolean isHex(String str) {return str.matches("0x[\\p{XDigit}]+");}
 
     public void analyze() {
         // First, search value list for trivial constants such as 0xFF and 0x0
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("\nTrivial constants\n");
-        stringBuilder.append("----------------------------\n");
+        // TODO: add more trivial constants to look for
         for (int i = 0; i < values.size(); i++) {
             int value = values.get(i);
             switch (value) {
                 case 0x00:
-                    stringBuilder.append("Line ").append(lineNumbers.get(i)).append(": ").append(ctxes.get(i)).append(" has value of 0x00.\nIf this is a sensitive value, consider revising.\n");
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"CONSTANT_CODING (Trivial): "+ expressionContent.get(i)+" has value of 0x00.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 case 0x01:
-                    stringBuilder.append("Line ").append(lineNumbers.get(i)).append(": ").append(ctxes.get(i)).append(" has value of 0x01.\nIf this is a sensitive value, consider revising.\n");
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"CONSTANT_CODING (Trivial): "+ expressionContent.get(i)+" has value of 0x01.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 case 0xFF:
-                    stringBuilder.append("Line ").append(lineNumbers.get(i)).append(": ").append(ctxes.get(i)).append(" has value of 0xFF.\nIf this is a sensitive value, consider revising.\n");
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"CONSTANT_CODING (Trivial): "+ expressionContent.get(i)+" has value of 0xFF.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 default:
                     break;
             }
         }
         
-        // For remaining values, calculate the Hamming distance between them and
-        // warn user if below threshold value
-        stringBuilder.append("\nHamming weights\n");
-        stringBuilder.append("----------------------------\n");
+        // For remaining values, calculate the Hamming distance between them and warn user if below sensitivity value
         for (int i = 0; i < values.size() - 1; i++) {
             for (int j = i + 1; j < values.size(); j++) {
                 int hamming = compareHamming(values.get(i), values.get(j));
                 if (hamming <= sensitivity) {
-                    stringBuilder.append("Line ").append(lineNumbers.get(i)).append(": ").append(ctxes.get(i)).append(" and line ").append(lineNumbers.get(j)).append(": ").append(ctxes.get(j)).append(" have Hamming distance of ").append(hamming).append(".\n");
-                    stringBuilder.append("If these are sensitive constants, consider revising.\n");
+                    output.appendResult(new ResultLine(ResultLine.MULTI_LOCATION,"CONSTANT_CODING (Low Hamming): Lines "+lineNumbers.get(i)+" : "+ expressionContent.get(i)+" and "+lineNumbers.get(j)+" : "+ expressionContent.get(j)+" have a low Hamming distance ("+hamming+").\n\tConsider replacement.",lineNumbers.get(i),lineNumbers.get(j)));
                 }
             }
         }
-        output.add(stringBuilder.toString());
     }
 }

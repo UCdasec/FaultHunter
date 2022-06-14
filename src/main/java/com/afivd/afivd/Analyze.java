@@ -1,19 +1,19 @@
 package com.afivd.afivd;
 
-import java.io.*;
-import java.util.ArrayList;
+import org.antlr.v4.gui.Trees;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import javax.swing.*;
+import java.io.IOException;
 import java.util.concurrent.Future;
 
-import org.antlr.v4.gui.Trees;
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
-
-import javax.swing.*;
-
+/**
+ * The Analyze class acts as a container to run all of our created Fault patterns and also handle initially parsing
+ * the passed C file using ANTLR.
+ */
 public class Analyze {
-
-    // Default Constructor
-
     private CParser parser;
     private CParser.CompilationUnitContext parseTree;
 
@@ -36,18 +36,18 @@ public class Analyze {
         }
     }
 
-
-    public ArrayList<String> runTests(){
-        // TODO: Have this function return a arraylist of strings of outputs of those functions
+    /**
+     * RunFaultPatterns runs each pattern created to generate a set of result for the code file including advice
+     * @return A ParsedResults storage object that contains all the results from the fault pattern analysis
+     */
+    public ParsedResults runFaultPatterns(){
         // Use our created listener classes and walk the tree
 
-        // Probably just going to pass this to the constructors of the Listener classes and use some ID to get the specific results,
-        // Most likely there is a better way to do this, but it will work
-        ArrayList<String> results = new ArrayList<>();
+        // Output ParsedResults object that will be passed to each Listener to fill with their results
+        ParsedResults results = new ParsedResults();
 
-        // Zero is start of index
         // Crypto cryptoListener = new Crypto();
-        ConstantCoding constantCodingListener = new ConstantCoding(parser, 3, results);
+        ConstantCoding constantCodingListener = new ConstantCoding(parser, results, 3);
         // Detect detectListener= new Detect();
         // DefaultFail defaultFailListener = new DefaultFail();
         // Flow flowListener = new Flow();
@@ -59,35 +59,38 @@ public class Analyze {
         // Bypass bypassListener = new Bypass();
 
 
+        // Now that all Fault Pattern objects have been created, use them in the ParseTreeWalker
+
         // ParseTreeWalker.DEFAULT.walk(cryptoListener, compilationUnitContext);
-        results.add("Detecting constant coding vulnerability...\n------------------------------------------");
         ParseTreeWalker.DEFAULT.walk(constantCodingListener, parseTree);
+        // TODO: Remove this extra function call in the future so we can use loops
         constantCodingListener.analyze();
-        results.add("\nDetecting branch vulnerability...\n------------------------------------------\n");
         ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);
         // ParseTreeWalker.DEFAULT.walk(detectListener, compilationUnitContext);
         // ParseTreeWalker.DEFAULT.walk(defaultFailListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(doublecheckListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(loopcheckListener, compilationUnitContext);
+        // ParseTreeWalker.DEFAULT.walk(doubleCheckListener, compilationUnitContext);
+        // ParseTreeWalker.DEFAULT.walk(loopCheckListener, compilationUnitContext);
         // ParseTreeWalker.DEFAULT.walk(branchListener, compilationUnitContext);
         // ParseTreeWalker.DEFAULT.walk(respondListener, compilationUnitContext);
         // ParseTreeWalker.DEFAULT.walk(delayListener, compilationUnitContext);
         // ParseTreeWalker.DEFAULT.walk(bypassListener, compilationUnitContext);
 
-
-
         return results;
     }
 
+    /**
+     * Pops up a Swing JFrame window when called with the created c parse tree
+     */
     public void showDebugTree(){
-        // Return results to display
+        // Return results to display using Swing
         Future<JFrame> treeWindow = Trees.inspect(parseTree, parser);
     }
 
+    /**
+     * Removes references to the used objects to ensure that they are garbage collected
+     */
     public void clearParser(){
         this.parser = null;
         this.parseTree = null;
     }
-
-
 }

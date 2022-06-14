@@ -1,64 +1,75 @@
 package com.afivd.afivd;
-// This detects if a boolean value is being used for a decision
-//
 
 import java.util.*;
 import org.antlr.v4.runtime.Token;
 
-public class Branch extends CBaseListener {
-    CParser parser;
-    boolean currentlyInIfStatement;
-    ArrayList<String> output;
+/**
+ * The Branch class checks for trivial constants in if-expressions to better safeguard against fault injection attacks
+ * Covers Fault.BRANCH
+ */
+public class Branch extends CBaseListener{
+    // Private Variables
+    private CParser parser;
+    private boolean currentlyInIfStatement;
 
-    List<Integer> lineNumbers = new ArrayList<Integer>();
-    List<String> ctxes = new ArrayList<String>();
-    List<Integer> values = new ArrayList<Integer>();
+    // Parser results, correlated by same index value
+    // TODO: Look at this later, currently unused
+    private List<Integer> lineNumbers = new ArrayList<>();
+    private List<String> expressionContent = new ArrayList<>();
+    private List<Integer> values = new ArrayList<>();
 
-    public Branch(CParser parser, ArrayList<String> output) {
+    // Output Array
+    private ParsedResults output;
+
+    /**
+     * Branch pattern Constructor requires the Parser and the output storage, ParsedResults
+     * @param parser The CParser object
+     * @param output A ParsedResults storage object to be appended to
+     */
+    public Branch(CParser parser, ParsedResults output) {
         this.parser = parser;
         this.currentlyInIfStatement = false;
         this.output = output;
     }
 
+
+    // ------------------------------------------ Listener Overrides ---------------------------------------------------
     @Override
     public void enterSelectionStatement(CParser.SelectionStatementContext ctx) {
         if (ctx.If() != null) {
             currentlyInIfStatement = true;
         }
     }
-
     @Override
     public void exitSelectionStatement(CParser.SelectionStatementContext ctx) {
         if (ctx.If() != null) {
             currentlyInIfStatement = false;
         }
     }
-
     @Override
     public void enterEqualityExpression(CParser.EqualityExpressionContext ctx) {
-        StringBuilder stringBuilder = new StringBuilder();
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
         List<CParser.RelationalExpressionContext> ctxes = ctx.relationalExpression();
         if (ctxes.size() > 1) {
             if (ctx.Equal() != null && currentlyInIfStatement) {
-                if (ctxes.get(1).getText().equals("true") || ctxes.get(1).getText().equals("false")) {
+                // Change to equalsIgnoreCase
+                if (ctxes.get(1).getText().equalsIgnoreCase("true") || ctxes.get(1).getText().equalsIgnoreCase("false")) {
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"BRANCH: "+ctx.getText()+" Using bool.",lineNumber));
 
-                    stringBuilder.append("Line ").append(lineNumber).append(": ").append(ctx.getText()).append(" Using bool.");
                 } else if (isInteger(ctxes.get(1).getText())) {
                     int number = Integer.parseInt(ctx.relationalExpression(1).getText());
                     if (number == 0 || number == 1) {
-                        stringBuilder.append(lineNumber).append(": ").append(ctx.getText()).append(" Using bool.");
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"BRANCH: "+ctx.getText()+" Using bool.",lineNumber));
                     }
                 }
             }
         }
-        output.add(stringBuilder.toString());
     }
 
+    // -------------------------------------------- Helper Functions ---------------------------------------------------
     private boolean isInteger(String str) {
         return str.matches("-?\\d+");
     }
-
 }
 
