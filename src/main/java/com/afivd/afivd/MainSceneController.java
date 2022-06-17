@@ -53,8 +53,8 @@ public class MainSceneController {
                 this.numCodeLines = this.codeLines.size();
                 codeTextArea.setText("");
                 StringBuilder plainCode = new StringBuilder();
-                for(String codeLine : this.codeLines){
-                    plainCode.append(codeLine).append("\n");
+                for(int i = 0; i<this.numCodeLines;i++){
+                    plainCode.append(i+1).append(": ").append(codeLines.get(i)).append("\n"); // Line number appended
                 }
                 codeTextArea.setText(plainCode.toString());
                 commentTextArea.clear();

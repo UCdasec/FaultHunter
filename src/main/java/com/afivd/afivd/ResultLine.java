@@ -42,7 +42,7 @@ public class ResultLine{
     @Override
     public String toString() {
         switch(this.mode) {
-            // TODO: Make comments available in a different output, rather than also allow them to be returned
+            // TODO: Make comments available in a different output, rather than return them in the same channel
             case GENERAL_COMMENT:
                 return "Comment: "+resultContents;
             case SINGLE_LINE:
