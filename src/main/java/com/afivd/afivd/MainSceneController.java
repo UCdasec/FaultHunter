@@ -8,7 +8,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.web.WebEngine;
 import javafx.stage.FileChooser;
+import javafx.scene.web.WebView;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -36,6 +38,9 @@ public class MainSceneController {
     @FXML
     private CheckBox showTreeCheckbox;
 
+    //@FXML
+    //private WebView codeWebView;
+
     // ----------------------------------- Button Handlers -----------------------------------
     /**
      * LoadFileButton corresponds to the 'Load File' button that opens up a File Chooser window
@@ -46,7 +51,7 @@ public class MainSceneController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select a C file...");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("C Files (*.c)","*.c"));
-        File cFile = fileChooser.showOpenDialog(loadFileButton.getScene().getWindow());
+        File cFile = fileChooser.showOpenDialog(this.loadFileButton.getScene().getWindow());
         try {
             if (cFile.isFile() && cFile.canRead() && cFile.canWrite()) {
                 this.codeLines = new ArrayList<>(Files.readAllLines(Paths.get(cFile.toURI())));
@@ -54,15 +59,15 @@ public class MainSceneController {
                 codeTextArea.setText("");
                 StringBuilder plainCode = new StringBuilder();
                 for(int i = 0; i<this.numCodeLines;i++){
-                    plainCode.append(i+1).append(": ").append(codeLines.get(i)).append("\n"); // Line number appended
+                    plainCode.append(i+1).append(": ").append(this.codeLines.get(i)).append("\n"); // Line number appended
                 }
-                codeTextArea.setText(plainCode.toString());
-                commentTextArea.clear();
+                this.codeTextArea.setText(plainCode.toString());
+                this.commentTextArea.clear();
                 this.cFilePath = cFile.getAbsolutePath();
 
                 // Enable run button
-                loadFileButton.setDisable(true);
-                runButton.setDisable(false);
+                this.loadFileButton.setDisable(true);
+                this.runButton.setDisable(false);
             }
         }catch (NullPointerException ignored){ // When user closes the open dialog
         }catch (Exception e){
@@ -78,10 +83,10 @@ public class MainSceneController {
             ArrayList<ResultLine> results = analyze.runFaultPatterns().getResults();
             if(results.size()!=0){
                 for (ResultLine result : results) {
-                    commentTextArea.appendText(result.toString()+"\n");
+                    this.commentTextArea.appendText(result.toString()+"\n");
                 }
             }else{
-                commentTextArea.appendText("No suggestions!");
+                this.commentTextArea.appendText("No suggestions!");
             }
 
         }else{
@@ -89,7 +94,7 @@ public class MainSceneController {
         }
 
         // If 'Show Tree' is selected
-        if (showTreeCheckbox.isSelected()){
+        if (this.showTreeCheckbox.isSelected()){
             analyze.showDebugTree();
         }
 
@@ -99,9 +104,18 @@ public class MainSceneController {
         clearStaleData();
 
         // Set buttons
-        runButton.setDisable(true);
-        loadFileButton.setDisable(false);
+        this.runButton.setDisable(true);
+        this.loadFileButton.setDisable(false);
     }
+
+    /*
+    private void runWebView(ParsedResults results){
+        WebEngine webEngine = this.codeWebView.getEngine();
+        webEngine.loadContent("","text/html");
+
+    }
+
+     */
 
     /**
      * Helper function used to help clear stale data after running the application and ensure GC does its job.

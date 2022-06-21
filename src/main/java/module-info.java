@@ -3,6 +3,7 @@ module com.afivd.afivd {
     requires javafx.fxml;
     requires antlr;
     requires java.desktop;
+    requires javafx.web;
 
 
     opens com.afivd.afivd to javafx.fxml;

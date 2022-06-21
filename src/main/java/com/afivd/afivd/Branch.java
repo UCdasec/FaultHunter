@@ -8,12 +8,14 @@ import org.antlr.v4.runtime.Token;
  * Covers Fault.BRANCH
  */
 public class Branch extends CBaseListener{
+    // TODO: Look at the unused variables in this class and determine if we will need these
+
     // Private Variables
     private CParser parser;
     private boolean currentlyInIfStatement;
 
     // Parser results, correlated by same index value
-    // TODO: Look at this later, currently unused
+
     private List<Integer> lineNumbers = new ArrayList<>();
     private List<String> expressionContent = new ArrayList<>();
     private List<Integer> values = new ArrayList<>();
@@ -46,21 +48,27 @@ public class Branch extends CBaseListener{
             currentlyInIfStatement = false;
         }
     }
+
+    // TODO: Redo to use ConditionalExpressionContext rather than EqualityExpressionContext, to get less than and greater than
     @Override
     public void enterEqualityExpression(CParser.EqualityExpressionContext ctx) {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
         List<CParser.RelationalExpressionContext> ctxes = ctx.relationalExpression();
+
+        // TODO: Add code to look at difference between AND'd and OR'd statements, will most likely have to modify hardcoded 1 value
         if (ctxes.size() > 1) {
+
             if (ctx.Equal() != null && currentlyInIfStatement) {
-                // Change to equalsIgnoreCase
+                System.out.println(ctx.getText());
                 if (ctxes.get(1).getText().equalsIgnoreCase("true") || ctxes.get(1).getText().equalsIgnoreCase("false")) {
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"BRANCH: "+ctx.getText()+" Using bool.",lineNumber));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber));
 
                 } else if (isInteger(ctxes.get(1).getText())) {
                     int number = Integer.parseInt(ctx.relationalExpression(1).getText());
+                    // TODO: Potentially change this so that if the if statement contains an explicit integer we flag it
                     if (number == 0 || number == 1) {
-                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"BRANCH: "+ctx.getText()+" Using bool.",lineNumber));
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber));
                     }
                 }
             }
@@ -68,6 +76,7 @@ public class Branch extends CBaseListener{
     }
 
     // -------------------------------------------- Helper Functions ---------------------------------------------------
+    // TODO: Use a more efficient integer checking function later
     private boolean isInteger(String str) {
         return str.matches("-?\\d+");
     }

@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import javax.swing.*;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -84,6 +85,9 @@ public class Analyze {
     public void showDebugTree(){
         // Return results to display using Swing
         Future<JFrame> treeWindow = Trees.inspect(parseTree, parser);
+        try {
+            treeWindow.get().setLocation(0,0); // Make sure it doesn't appear off te screen
+        } catch (Exception ignored) {}
     }
 
     /**

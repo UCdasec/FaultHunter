@@ -16,7 +16,7 @@ public class ConstantCoding extends CBaseListener {
     // Private Variables
     private CParser parser;
     private final int sensitivity;
-    private boolean inFunctionDefinition;
+    private boolean inFunctionDefinition = false;
     private ParsedResults output;
 
     // Parser Results, correlated by same index value
@@ -33,28 +33,25 @@ public class ConstantCoding extends CBaseListener {
     public ConstantCoding(CParser parser, ParsedResults output, int sensitivity) {
         this.parser = parser;
         this.sensitivity = sensitivity;
-        this.inFunctionDefinition = false;
         this.output = output;
     }
 
-    // TODO: remove this later so that we do look inside functions
-    // Globals are outside of main, when we enter a function definition we no longer want to add constants to our list
+    // We are now looking inside functions for constant usage and declaration
+    /* These two functions not currently needed
+    @Override
+    public void enterFunctionDefinition(CParser.FunctionDefinitionContext ctx) {inFunctionDefinition = true;}
+    @Override
+    public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {inFunctionDefinition = false;}
+     */
 
     // ------------------------------------------ Listener Overrides ---------------------------------------------------
-    @Override
-    public void enterFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
-        inFunctionDefinition = true;
-    }
-    @Override
-    public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
-        inFunctionDefinition = false;
-    }
+
     @Override
     public void enterInitDeclarator(CParser.InitDeclaratorContext ctx) {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
         int number;
-        if (inFunctionDefinition == false && ctx.initializer() != null && isInteger(ctx.initializer().getText())) {
+        if (ctx.initializer() != null && isInteger(ctx.initializer().getText())) {
 
             try {
                     if (isHex(ctx.initializer().getText())) {
@@ -75,7 +72,7 @@ public class ConstantCoding extends CBaseListener {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
         int number;
-        if (inFunctionDefinition == false && ctx.assignmentOperator() != null && ctx.assignmentOperator().getText().equals("=")
+        if (ctx.assignmentOperator() != null && ctx.assignmentOperator().getText().equals("=")
                 && ctx.assignmentExpression() != null && isInteger(ctx.assignmentExpression().getText())) {
                 try {
                     if (isHex(ctx.assignmentExpression().getText())) {
@@ -92,7 +89,8 @@ public class ConstantCoding extends CBaseListener {
         }
     }
 
-    // TODO: Add override code to also look at "#define" constants as well.
+    // TODO: Add override code to also look at "#define" constants as well. Note, define statements are not part of the
+    //  current grammar file for some reason
 
     // -------------------------------------------- Helper Functions ---------------------------------------------------
 
@@ -142,30 +140,32 @@ public class ConstantCoding extends CBaseListener {
 
     public void analyze() {
         // First, search value list for trivial constants such as 0xFF and 0x0
-        // TODO: add more trivial constants to look for
+        // TODO: For now, detect all constant integers that are declared. A better system will check to see if these values are ever
+        //  modified by code, and thus can be ignored by the constant coding pattern
         for (int i = 0; i < values.size(); i++) {
             int value = values.get(i);
             switch (value) {
                 case 0x00:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"CONSTANT_CODING (Trivial): "+ expressionContent.get(i)+" has value of 0x00.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" has value of 0x00.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 case 0x01:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"CONSTANT_CODING (Trivial): "+ expressionContent.get(i)+" has value of 0x01.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" has value of 0x01.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 case 0xFF:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"CONSTANT_CODING (Trivial): "+ expressionContent.get(i)+" has value of 0xFF.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" has value of 0xFF.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 default:
                     break;
             }
         }
-        
+
+        // TODO: Revise when hamming distance between values is calculated (probably just inside switch statements)
         // For remaining values, calculate the Hamming distance between them and warn user if below sensitivity value
         for (int i = 0; i < values.size() - 1; i++) {
             for (int j = i + 1; j < values.size(); j++) {
                 int hamming = compareHamming(values.get(i), values.get(j));
                 if (hamming <= sensitivity) {
-                    output.appendResult(new ResultLine(ResultLine.MULTI_LOCATION,"CONSTANT_CODING (Low Hamming): Lines "+lineNumbers.get(i)+" : "+ expressionContent.get(i)+" and "+lineNumbers.get(j)+" : "+ expressionContent.get(j)+" have a low Hamming distance ("+hamming+").\n\tConsider replacement.",lineNumbers.get(i),lineNumbers.get(j)));
+                    output.appendResult(new ResultLine(ResultLine.MULTI_LOCATION,"constant_coding","(Low Hamming): Lines "+lineNumbers.get(i)+" : "+ expressionContent.get(i)+" and "+lineNumbers.get(j)+" : "+ expressionContent.get(j)+" have a low Hamming distance ("+hamming+").\n\tConsider replacement.",lineNumbers.get(i),lineNumbers.get(j)));
                 }
             }
         }
