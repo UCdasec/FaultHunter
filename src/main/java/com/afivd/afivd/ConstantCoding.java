@@ -52,7 +52,6 @@ public class ConstantCoding extends CBaseListener {
         int lineNumber = token.getLine();
         int number;
         if (ctx.initializer() != null && isInteger(ctx.initializer().getText())) {
-
             try {
                     if (isHex(ctx.initializer().getText())) {
                         number = Integer.parseInt(ctx.initializer().getText().replaceAll("0x", ""), 16);
@@ -88,6 +87,9 @@ public class ConstantCoding extends CBaseListener {
             values.add(number);
         }
     }
+
+    // TODO: Add exceptions to not look inside for-loops delcarations for constants, ...
+
 
     // TODO: Add override code to also look at "#define" constants as well. Note, define statements are not part of the
     //  current grammar file for some reason
