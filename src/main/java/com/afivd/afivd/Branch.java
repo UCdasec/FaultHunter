@@ -31,12 +31,16 @@ public class Branch extends CBaseListener{
         this.output = output;
     }
 
+    /**
+     * TempResult is a private inner class used to store Branch results specifically in the case when OR or AND statements
+     * are present. This helper class assists in determining if the overall statement will be considered trivial or not.
+     */
     private static class TempResult{
         public static final short AND_FLAG = 0b00000000;
         public static final short OR_FLAG = 0b00000001;
-        private boolean isTrivial;
-        private short selectionContextFlag;
-        private ResultLine resultLine;
+        private final boolean isTrivial;
+        private final short selectionContextFlag;
+        private final ResultLine resultLine;
         public TempResult(boolean isTrivial, short selectionContextFlag, ResultLine resultLine){
             this.isTrivial = isTrivial;
             this.selectionContextFlag = selectionContextFlag;
@@ -78,13 +82,6 @@ public class Branch extends CBaseListener{
             }
         }
         // Report if the number of trivial / non-trivial statements is correct
-        /*
-        for(TempResult tempResult : tempResults){
-                if(tempResult.isTrivial()){
-                    output.appendResult(tempResult.getResultLine());
-                }
-            }
-         */
         // Will be very verbose with these if-statements to make sure I handle all of the cases
         // Only AND statements:
         if(numNonTrivialORStatements==0&&numTrivialORStatements==0&&numTrivialANDStatements>=1&&numNonTrivialANDStatements==0){
@@ -164,15 +161,6 @@ public class Branch extends CBaseListener{
     }
     @Override
     public void exitLogicalAndExpression(CParser.LogicalAndExpressionContext ctx) {this.inAndExpression=false;}
-
-
-
-
-
-
-
-
-
 
     // Just for equal to (==)
     @Override

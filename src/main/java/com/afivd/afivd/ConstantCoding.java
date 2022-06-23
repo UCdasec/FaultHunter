@@ -16,7 +16,7 @@ public class ConstantCoding extends CBaseListener {
     // Private Variables
     private CParser parser;
     private final int sensitivity;
-    private boolean inFunctionDefinition = false;
+    private boolean inForLoop = false;
     private ParsedResults output;
 
     // Parser Results, correlated by same index value
@@ -51,7 +51,9 @@ public class ConstantCoding extends CBaseListener {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
         int number;
-        if (ctx.initializer() != null && isInteger(ctx.initializer().getText())) {
+        // Current exception list:
+        //      * No variables in for-loop declaration
+        if (ctx.initializer() != null && !inForLoop && isInteger(ctx.initializer().getText())) {
             try {
                     if (isHex(ctx.initializer().getText())) {
                         number = Integer.parseInt(ctx.initializer().getText().replaceAll("0x", ""), 16);
@@ -71,7 +73,9 @@ public class ConstantCoding extends CBaseListener {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
         int number;
-        if (ctx.assignmentOperator() != null && ctx.assignmentOperator().getText().equals("=")
+        // Current exception list:
+        //      * No variables in for-loop declaration
+        if (ctx.assignmentOperator() != null && !inForLoop && ctx.assignmentOperator().getText().equals("=")
                 && ctx.assignmentExpression() != null && isInteger(ctx.assignmentExpression().getText())) {
                 try {
                     if (isHex(ctx.assignmentExpression().getText())) {
@@ -88,8 +92,14 @@ public class ConstantCoding extends CBaseListener {
         }
     }
 
-    // TODO: Add exceptions to not look inside for-loops delcarations for constants, ...
-
+    @Override
+    public void enterIterationStatement(CParser.IterationStatementContext ctx) {
+        this.inForLoop = true;
+    }
+    @Override
+    public void exitIterationStatement(CParser.IterationStatementContext ctx) {
+        this.inForLoop = false;
+    }
 
     // TODO: Add override code to also look at "#define" constants as well. Note, define statements are not part of the
     //  current grammar file for some reason
