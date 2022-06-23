@@ -17,12 +17,19 @@ public class ConstantCoding extends CBaseListener {
     private CParser parser;
     private final int sensitivity;
     private boolean inForLoop = false;
+    private boolean inSwitchCase = false;
     private ParsedResults output;
 
+    // TODO: replace this with inner class: this is sort of messy
     // Parser Results, correlated by same index value
     private List<Integer> lineNumbers = new ArrayList<>();
     private List<String> expressionContent = new ArrayList<>();
     private List<Integer> values = new ArrayList<>();
+
+    // Specific lists for values inside switch statement cases only
+    private List<Integer> switchLineNumbers = new ArrayList<>();
+    private List<String> switchExpressionContent = new ArrayList<>();
+    private List<Integer> switchValues = new ArrayList<>();
 
     /**
      * ConstantCoding Constructor requires the CParser object, output storage ParsedResults, and a hamming sensitivity
@@ -31,20 +38,51 @@ public class ConstantCoding extends CBaseListener {
      * @param sensitivity The Hamming Distance between two constants that will start to trigger our notification message
      */
     public ConstantCoding(CParser parser, ParsedResults output, int sensitivity) {
-        this.parser = parser;
+        //this.parser = parser;
         this.sensitivity = sensitivity;
         this.output = output;
     }
 
     // We are now looking inside functions for constant usage and declaration
-    /* These two functions not currently needed
-    @Override
-    public void enterFunctionDefinition(CParser.FunctionDefinitionContext ctx) {inFunctionDefinition = true;}
-    @Override
-    public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {inFunctionDefinition = false;}
-     */
+    // These two functions not currently needed 'enterFunctionDefinition' and 'exitFunctionDefinition'
 
     // ------------------------------------------ Listener Overrides ---------------------------------------------------
+    @Override
+    public void enterIterationStatement(CParser.IterationStatementContext ctx) {
+        this.inForLoop = true;
+    }
+    @Override
+    public void exitIterationStatement(CParser.IterationStatementContext ctx) {
+        this.inForLoop = false;
+    }
+    @Override
+    public void enterLabeledStatement(CParser.LabeledStatementContext ctx){
+        this.inSwitchCase = true;
+        Token token = ctx.getStart();
+        int lineNumber = token.getLine();
+        int number;
+        if (ctx.constantExpression() != null && isInteger(ctx.constantExpression().getText())){
+            try {
+                if (isHex(ctx.constantExpression().getText())) {
+                    number = Integer.parseInt(ctx.constantExpression().getText().replaceAll("0x", ""), 16);
+                } else {
+                    number = Integer.parseInt(ctx.constantExpression().getText());
+                }
+            } catch (NumberFormatException e) {
+                return;
+            }
+
+            switchValues.add(number);
+            switchLineNumbers.add(lineNumber);
+            switchExpressionContent.add(ctx.getText());
+
+        }
+
+    }
+    @Override
+    public void exitLabeledStatement(CParser.LabeledStatementContext ctx){
+        this.inSwitchCase = false;
+    }
 
     @Override
     public void enterInitDeclarator(CParser.InitDeclaratorContext ctx) {
@@ -63,9 +101,13 @@ public class ConstantCoding extends CBaseListener {
             } catch (NumberFormatException e) {
                 return;
             }
-            lineNumbers.add(lineNumber);
-            expressionContent.add(ctx.getText());
-            values.add(number);
+
+            // Case statements will be handled differently than normal constants
+            if(!inSwitchCase) {
+                lineNumbers.add(lineNumber);
+                expressionContent.add(ctx.getText());
+                values.add(number);
+            }
         }
     }
     @Override 
@@ -86,20 +128,16 @@ public class ConstantCoding extends CBaseListener {
                 } catch (NumberFormatException e) {
                     return;
                 }
-            lineNumbers.add(lineNumber);
-            expressionContent.add(ctx.getText());
-            values.add(number);
+            // Case statements will be handled differently than normal constants
+            if(!inSwitchCase) {
+                lineNumbers.add(lineNumber);
+                expressionContent.add(ctx.getText());
+                values.add(number);
+            }
         }
     }
 
-    @Override
-    public void enterIterationStatement(CParser.IterationStatementContext ctx) {
-        this.inForLoop = true;
-    }
-    @Override
-    public void exitIterationStatement(CParser.IterationStatementContext ctx) {
-        this.inForLoop = false;
-    }
+
 
     // TODO: Add override code to also look at "#define" constants as well. Note, define statements are not part of the
     //  current grammar file for some reason
@@ -171,13 +209,15 @@ public class ConstantCoding extends CBaseListener {
             }
         }
 
-        // TODO: Revise when hamming distance between values is calculated (probably just inside switch statements)
+
         // For remaining values, calculate the Hamming distance between them and warn user if below sensitivity value
-        for (int i = 0; i < values.size() - 1; i++) {
-            for (int j = i + 1; j < values.size(); j++) {
-                int hamming = compareHamming(values.get(i), values.get(j));
+        // Added exception
+        //      * Only look inside switch statements for hamming comparison for now
+        for (int i = 0; i < switchValues.size() - 1; i++) {
+            for (int j = i + 1; j < switchValues.size(); j++) {
+                int hamming = compareHamming(switchValues.get(i), switchValues.get(j));
                 if (hamming <= sensitivity) {
-                    output.appendResult(new ResultLine(ResultLine.MULTI_LOCATION,"constant_coding","(Low Hamming): Lines "+lineNumbers.get(i)+" : "+ expressionContent.get(i)+" and "+lineNumbers.get(j)+" : "+ expressionContent.get(j)+" have a low Hamming distance ("+hamming+").\n\tConsider replacement.",lineNumbers.get(i),lineNumbers.get(j)));
+                    output.appendResult(new ResultLine(ResultLine.MULTI_LOCATION,"constant_coding","(Low Hamming): Switch case lines "+switchLineNumbers.get(i)+" : "+ switchExpressionContent.get(i)+" and "+switchLineNumbers.get(j)+" : "+ switchExpressionContent.get(j)+" have a low Hamming distance ("+hamming+"). Consider more complex flags.",switchLineNumbers.get(i),switchLineNumbers.get(j)));
                 }
             }
         }
