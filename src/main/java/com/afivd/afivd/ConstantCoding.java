@@ -205,6 +205,7 @@ public class ConstantCoding extends CBaseListener {
                     output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" has value of 0xFF.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 default:
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" uses explicit integer "+value,lineNumbers.get(i)));
                     break;
             }
         }
