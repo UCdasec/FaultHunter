@@ -32,7 +32,6 @@ public class ConstantCoding extends CBaseListener {
      * @param sensitivity The Hamming Distance between two constants that will start to trigger our notification message
      */
     public ConstantCoding(ParsedResults output, int sensitivity) {
-        //this.parser = parser;
         this.sensitivity = sensitivity;
         this.output = output;
     }
@@ -41,14 +40,20 @@ public class ConstantCoding extends CBaseListener {
     // These two functions not currently needed 'enterFunctionDefinition' and 'exitFunctionDefinition'
 
     // ------------------------------------------ Listener Overrides ---------------------------------------------------
+
     @Override
     public void enterIterationStatement(CParser.IterationStatementContext ctx) {
-        this.inForLoop = true;
+        if(ctx.getStart().getText().equalsIgnoreCase("for")){
+            this.inForLoop = true;
+        }
     }
     @Override
     public void exitIterationStatement(CParser.IterationStatementContext ctx) {
-        this.inForLoop = false;
+        if(ctx.getStart().getText().equalsIgnoreCase("for")){
+            this.inForLoop = false;
+        }
     }
+
     @Override
     public void enterLabeledStatement(CParser.LabeledStatementContext ctx){
         this.inSwitchCase = true;
@@ -86,15 +91,12 @@ public class ConstantCoding extends CBaseListener {
         // Current exception list:
         //      * No variables in for-loop declaration
         if (ctx.initializer() != null && !inForLoop && isInteger(ctx.initializer().getText())) {
-            // TODO: Add detection of boolean constants
             try {
                     if (isHex(ctx.initializer().getText())) {
                         number = Integer.parseInt(ctx.initializer().getText().replaceAll("0x", ""), 16);
                     } else {
                         number = Integer.parseInt(ctx.initializer().getText());
                     }
-
-
             } catch (NumberFormatException e) {System.out.println("something wrong with regex");return;}
 
             // Case statements will be handled differently than normal constants
@@ -104,7 +106,10 @@ public class ConstantCoding extends CBaseListener {
                 values.add(number);
             }
 
+        }else if(ctx.initializer() != null && !inForLoop && (ctx.initializer().getText().equalsIgnoreCase("true") || ctx.initializer().getText().equalsIgnoreCase("false"))){
+            output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+ctx.getText()+"\""+" uses explicit boolean "+ctx.initializer().getText(),lineNumber));
         }
+
     }
     @Override 
     public void enterAssignmentExpression(CParser.AssignmentExpressionContext ctx) {
@@ -132,6 +137,13 @@ public class ConstantCoding extends CBaseListener {
                 values.add(number);
             }
 
+        }else if(ctx.assignmentOperator() != null &&
+                ctx.assignmentExpression() != null &&
+                !inForLoop &&
+                ctx.assignmentOperator().getText().equals("=") &&
+                (ctx.assignmentExpression().getText().equalsIgnoreCase("true") ||
+                        ctx.assignmentExpression().getText().equalsIgnoreCase("false"))){
+            output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+ctx.getText()+"\""+" uses explicit boolean "+ctx.assignmentOperator().getText(),lineNumber));
         }
     }
 
@@ -194,13 +206,13 @@ public class ConstantCoding extends CBaseListener {
             int value = values.get(i);
             switch (value) {
                 case 0x00:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0x00.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0x00. Consider replacement.",lineNumbers.get(i)));
                     break;
                 case 0x01:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0x01.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0x01. Consider replacement.",lineNumbers.get(i)));
                     break;
                 case 0xFF:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0xFF.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0xFF. Consider replacement.",lineNumbers.get(i)));
                     break;
                 default:
                     output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" uses explicit integer "+value,lineNumbers.get(i)));

@@ -25,7 +25,6 @@ public class Branch extends CBaseListener{
      * @param output A ParsedResults storage object to be appended to
      */
     public Branch(ParsedResults output) {
-        //this.parser = parser;
         this.currentlyInIfStatement = false;
         this.output = output;
     }

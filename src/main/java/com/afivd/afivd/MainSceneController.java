@@ -15,6 +15,9 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * MainSceneController handles interaction with JavaFX UI elements
@@ -80,8 +83,18 @@ public class MainSceneController {
     protected void runButton(){
         Analyze analyze = new Analyze();
         if(analyze.loadAndParseC(this.cFilePath)){
-            ArrayList<ResultLine> results = analyze.runFaultPatterns().getResults();
+            List<ResultLine> results = analyze.runFaultPatterns().getResults();
+
             if(results.size()!=0){
+                // Sort before displaying
+                Collections.sort(results, new Comparator<ResultLine>() {
+                    @Override
+                    public int compare(ResultLine lhs, ResultLine rhs) {
+                        // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                        return Integer.compare(lhs.getLineNumbers()[0], rhs.getLineNumbers()[0]);
+                    }
+                });
+
                 for (ResultLine result : results) {
                     this.commentTextArea.appendText(result.toString()+"\n");
                 }
