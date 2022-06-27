@@ -1,9 +1,5 @@
 package com.afivd.afivd;
 
-// The objective is to locate any instance of a variable being assigned
-// a value (i.e. x = 5) and evaluate the hamming weight of this value.
-// Additionally, we want to catch trivial constants like 0x00 and 0xFF
-
 import java.util.*;  
 import org.antlr.v4.runtime.Token;
 
@@ -14,13 +10,12 @@ import org.antlr.v4.runtime.Token;
  */
 public class ConstantCoding extends CBaseListener {
     // Private Variables
-    private CParser parser;
     private final int sensitivity;
     private boolean inForLoop = false;
     private boolean inSwitchCase = false;
     private ParsedResults output;
 
-    // TODO: replace this with inner class: this is sort of messy
+    // TODO: replace this with inner class: these lists are sort of messy
     // Parser Results, correlated by same index value
     private List<Integer> lineNumbers = new ArrayList<>();
     private List<String> expressionContent = new ArrayList<>();
@@ -33,11 +28,10 @@ public class ConstantCoding extends CBaseListener {
 
     /**
      * ConstantCoding Constructor requires the CParser object, output storage ParsedResults, and a hamming sensitivity
-     * @param parser The CParser Object
      * @param output A ParsedResults storage object to be appended to
      * @param sensitivity The Hamming Distance between two constants that will start to trigger our notification message
      */
-    public ConstantCoding(CParser parser, ParsedResults output, int sensitivity) {
+    public ConstantCoding(ParsedResults output, int sensitivity) {
         //this.parser = parser;
         this.sensitivity = sensitivity;
         this.output = output;
@@ -92,15 +86,16 @@ public class ConstantCoding extends CBaseListener {
         // Current exception list:
         //      * No variables in for-loop declaration
         if (ctx.initializer() != null && !inForLoop && isInteger(ctx.initializer().getText())) {
+            // TODO: Add detection of boolean constants
             try {
                     if (isHex(ctx.initializer().getText())) {
                         number = Integer.parseInt(ctx.initializer().getText().replaceAll("0x", ""), 16);
                     } else {
                         number = Integer.parseInt(ctx.initializer().getText());
                     }
-            } catch (NumberFormatException e) {
-                return;
-            }
+
+
+            } catch (NumberFormatException e) {System.out.println("something wrong with regex");return;}
 
             // Case statements will be handled differently than normal constants
             if(!inSwitchCase) {
@@ -108,6 +103,7 @@ public class ConstantCoding extends CBaseListener {
                 expressionContent.add(ctx.getText());
                 values.add(number);
             }
+
         }
     }
     @Override 
@@ -128,12 +124,14 @@ public class ConstantCoding extends CBaseListener {
                 } catch (NumberFormatException e) {
                     return;
                 }
+
             // Case statements will be handled differently than normal constants
             if(!inSwitchCase) {
                 lineNumbers.add(lineNumber);
                 expressionContent.add(ctx.getText());
                 values.add(number);
             }
+
         }
     }
 
@@ -196,16 +194,16 @@ public class ConstantCoding extends CBaseListener {
             int value = values.get(i);
             switch (value) {
                 case 0x00:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" has value of 0x00.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0x00.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 case 0x01:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" has value of 0x01.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0x01.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 case 0xFF:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" has value of 0xFF.\n\tConsider replacement.",lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0xFF.\n\tConsider replacement.",lineNumbers.get(i)));
                     break;
                 default:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ expressionContent.get(i)+" uses explicit integer "+value,lineNumbers.get(i)));
+                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" uses explicit integer "+value,lineNumbers.get(i)));
                     break;
             }
         }
@@ -218,7 +216,7 @@ public class ConstantCoding extends CBaseListener {
             for (int j = i + 1; j < switchValues.size(); j++) {
                 int hamming = compareHamming(switchValues.get(i), switchValues.get(j));
                 if (hamming <= sensitivity) {
-                    output.appendResult(new ResultLine(ResultLine.MULTI_LOCATION,"constant_coding","(Low Hamming): Switch case lines "+switchLineNumbers.get(i)+" : "+ switchExpressionContent.get(i)+" and "+switchLineNumbers.get(j)+" : "+ switchExpressionContent.get(j)+" have a low Hamming distance ("+hamming+"). Consider more complex flags.",switchLineNumbers.get(i),switchLineNumbers.get(j)));
+                    output.appendResult(new ResultLine(ResultLine.MULTI_LOCATION,"constant_coding","(Low Hamming): Switch case lines "+switchLineNumbers.get(i)+" : "+ "\""+switchExpressionContent.get(i)+"\""+" and "+switchLineNumbers.get(j)+" : "+ "\""+switchExpressionContent.get(j)+"\""+" have a low Hamming distance ("+hamming+"). Consider more complex flags.",switchLineNumbers.get(i),switchLineNumbers.get(j)));
                 }
             }
         }

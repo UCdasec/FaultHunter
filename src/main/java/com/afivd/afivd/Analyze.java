@@ -7,7 +7,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import javax.swing.*;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -42,19 +41,18 @@ public class Analyze {
      * @return A ParsedResults storage object that contains all the results from the fault pattern analysis
      */
     public ParsedResults runFaultPatterns(){
-        // Use our created listener classes and walk the tree
 
         // Output ParsedResults object that will be passed to each Listener to fill with their results
         ParsedResults results = new ParsedResults();
 
         // Crypto cryptoListener = new Crypto();
-        ConstantCoding constantCodingListener = new ConstantCoding(parser, results, 3);
+        ConstantCoding constantCodingListener = new ConstantCoding(results, 3);
         // Detect detectListener= new Detect();
-        // DefaultFail defaultFailListener = new DefaultFail();
+        DefaultFail defaultFailListener = new DefaultFail(results);
         // Flow flowListener = new Flow();
         // Doublecheck doublecheckListener = new Doublecheck();
         // Loopcheck loopcheckListener = new Loopcheck();
-        Branch branchListener = new Branch(parser, results);
+        Branch branchListener = new Branch(results);
         // Respond respondListener = new Respond();
         // Delay delayListener = new Delay();
         // Bypass bypassListener = new Bypass();
@@ -62,19 +60,20 @@ public class Analyze {
 
         // Now that all Fault Pattern objects have been created, use them in the ParseTreeWalker
 
-        // ParseTreeWalker.DEFAULT.walk(cryptoListener, compilationUnitContext);
+        // ParseTreeWalker.DEFAULT.walk(cryptoListener, parseTree);
         ParseTreeWalker.DEFAULT.walk(constantCodingListener, parseTree);
-        // TODO: Remove this extra function call in the future so we can use loops
+        // TODO: Remove this extra function call in the future so we can use loops to run each pattern
         constantCodingListener.analyze();
         ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);
-        // ParseTreeWalker.DEFAULT.walk(detectListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(defaultFailListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(doubleCheckListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(loopCheckListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(branchListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(respondListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(delayListener, compilationUnitContext);
-        // ParseTreeWalker.DEFAULT.walk(bypassListener, compilationUnitContext);
+        // ParseTreeWalker.DEFAULT.walk(detectListener, parseTree);
+        ParseTreeWalker.DEFAULT.walk(defaultFailListener, parseTree);
+        defaultFailListener.runAtEnd();
+        // ParseTreeWalker.DEFAULT.walk(doubleCheckListener, parseTree);
+        // ParseTreeWalker.DEFAULT.walk(loopCheckListener, parseTree);
+        // ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);
+        // ParseTreeWalker.DEFAULT.walk(respondListener, parseTree);
+        // ParseTreeWalker.DEFAULT.walk(delayListener, parseTree);
+        // ParseTreeWalker.DEFAULT.walk(bypassListener, parseTree);
 
         return results;
     }

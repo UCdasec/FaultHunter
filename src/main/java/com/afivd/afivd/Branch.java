@@ -22,10 +22,9 @@ public class Branch extends CBaseListener{
 
     /**
      * Branch pattern Constructor requires the Parser and the output storage, ParsedResults
-     * @param parser The CParser object
      * @param output A ParsedResults storage object to be appended to
      */
-    public Branch(CParser parser, ParsedResults output) {
+    public Branch(ParsedResults output) {
         //this.parser = parser;
         this.currentlyInIfStatement = false;
         this.output = output;
@@ -172,14 +171,14 @@ public class Branch extends CBaseListener{
             if (ctx.Equal() != null && currentlyInIfStatement) {
                 if (ctxes.get(1).getText().equalsIgnoreCase("true") || ctxes.get(1).getText().equalsIgnoreCase("false")) {
                     if(inOrExpression&&!inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using trivial bool in branch statement.",lineNumber)));
                     }else if (!inOrExpression&&inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using trivial bool in branch statement.",lineNumber)));
                     }else if (inOrExpression&&inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using trivial bool in branch statement.",lineNumber)));
                     }else{
                         // Else, the if statement does not use an AND or an OR operator
-                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber));
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using trivial bool in branch statement.",lineNumber));
                     }
 
 
@@ -190,14 +189,14 @@ public class Branch extends CBaseListener{
                     if (number == 0 || number == 1) {output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber));}
                      */
                     if(inOrExpression&&!inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using explicit integer instead of variable.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber)));
                     }else if (!inOrExpression&&inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using explicit integer instead of variable.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber)));
                     }else if (inOrExpression&&inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using explicit integer instead of variable.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber)));
                     }else{
                         // Else, the if statement does not use an AND or an OR operator
-                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using explicit integer instead of variable.",lineNumber));
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber));
                     }
                 } else {
                     // Else, the statement is deemed not trivial, so if we are in an AND or OR statement, report in the negative
@@ -230,13 +229,13 @@ public class Branch extends CBaseListener{
                     if (number == 0 || number == 1) {output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber));}
                      */
                     if(inOrExpression&&!inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using explicit integer instead of variable.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber)));
                     }else if (!inOrExpression&&inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using explicit integer instead of variable.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber)));
                     }else if (inOrExpression&&inAndExpression){
-                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using explicit integer instead of variable.",lineNumber)));
+                        tempResults.add(new TempResult(true,TempResult.AND_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber)));
                     }else {
-                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE, "branch", ctx.getText() + " Using explicit integer instead of variable.", lineNumber));
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE, "branch", "\""+ctx.getText() +"\""+ " Using explicit integer instead of variable in branch.", lineNumber));
                     }
                 }
                 // Else, the statement is deemed not trivial, so if we are in an AND or OR statement, report in the negative
