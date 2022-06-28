@@ -4,6 +4,7 @@ import org.antlr.v4.gui.Trees;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import javax.swing.*;
 import java.io.IOException;
@@ -50,35 +51,39 @@ public class Analyze {
         VariableSearcher variableSearcher = new VariableSearcher();
         ParseTreeWalker.DEFAULT.walk(variableSearcher,parseTree);
         ArrayList<VariableSearcher.VariableTuple> codeVariables = variableSearcher.getVariables();
+        //for (VariableSearcher.VariableTuple codeVariable : codeVariables) {System.out.println(codeVariable.getVariableType() + " : " + codeVariable.getVariableName() + " : " + codeVariable.getDepth());}
 
-        for (VariableSearcher.VariableTuple codeVariable : codeVariables) {
-            System.out.println(codeVariable.getVariableType() + " : " + codeVariable.getVariableName());
-        }
+        ArrayList<FaultPattern> faultPatterns = new ArrayList<>();
 
         // Crypto cryptoListener = new Crypto();
-        ConstantCoding constantCodingListener = new ConstantCoding(results, 3);
+        faultPatterns.add(new ConstantCoding(results, 3));
         // Detect detectListener= new Detect();
-        DefaultFail defaultFailListener = new DefaultFail(results);
+        faultPatterns.add(new DefaultFail(results));
         // Flow flowListener = new Flow();
         // DoubleCheck doubleCheckListener = new DoubleCheck();
-        // LoopCheck loopCheckListener = new LoopCheck();
-        Branch branchListener = new Branch(results);
+        faultPatterns.add(new LoopCheck(results,codeVariables));
+        faultPatterns.add(new Branch(results));
         // Respond respondListener = new Respond();
         // Delay delayListener = new Delay();
         // Bypass bypassListener = new Bypass();
 
 
         // Now that all Fault Pattern objects have been created, use them in the ParseTreeWalker to have them 'listen'
+        // Additionally, run all closing function (which does nothing by default)
+        for(FaultPattern faultPattern : faultPatterns){
+            ParseTreeWalker.DEFAULT.walk((ParseTreeListener) faultPattern,parseTree);
+            faultPattern.runAtEnd();
+        }
 
         // TODO: Remove these extra function calls in the future so we can use loops to run each pattern
 
         // ParseTreeWalker.DEFAULT.walk(cryptoListener, parseTree);
-        ParseTreeWalker.DEFAULT.walk(constantCodingListener, parseTree);
-        constantCodingListener.analyze();
-        ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);
+        //ParseTreeWalker.DEFAULT.walk(constantCodingListener, parseTree);
+        //constantCodingListener.runAtEnd();
+        //ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);
         // ParseTreeWalker.DEFAULT.walk(detectListener, parseTree);
-        ParseTreeWalker.DEFAULT.walk(defaultFailListener, parseTree);
-        defaultFailListener.runAtEnd();
+        //ParseTreeWalker.DEFAULT.walk(defaultFailListener, parseTree);
+        //defaultFailListener.runAtEnd();
         // ParseTreeWalker.DEFAULT.walk(doubleCheckListener, parseTree);
         // ParseTreeWalker.DEFAULT.walk(loopCheckListener, parseTree);
         // ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);

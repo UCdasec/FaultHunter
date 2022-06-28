@@ -2,7 +2,7 @@ package com.afivd.afivd;
 
 import org.antlr.v4.runtime.Token;
 
-public class DefaultFail extends CBaseListener{
+public class DefaultFail extends CBaseListener implements FaultPattern{
     private ParsedResults output;
 
     public DefaultFail(ParsedResults output){
@@ -40,6 +40,7 @@ public class DefaultFail extends CBaseListener{
     }
 
     // -------------------------------------------- Helper Functions ---------------------------------------------------
+    @Override
     public void runAtEnd(){
         if(selectionStatementContext != null && selectionStatementContext.Else() != null){
             Token token = this.selectionStatementContext.Else().getSymbol();

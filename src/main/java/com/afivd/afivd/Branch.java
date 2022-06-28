@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.Token;
  * The Branch class checks for trivial constants in if-expressions to better safeguard against fault injection attacks
  * Covers Fault.BRANCH
  */
-public class Branch extends CBaseListener{
+public class Branch extends CBaseListener implements FaultPattern{
 
     // Private Variables
     private boolean currentlyInIfStatement;
@@ -28,6 +28,11 @@ public class Branch extends CBaseListener{
     public Branch(ParsedResults output) {
         this.currentlyInIfStatement = false;
         this.output = output;
+    }
+
+    @Override
+    public void runAtEnd() {
+        // Nothing needed to run at the end for Fault.Branch
     }
 
     /**

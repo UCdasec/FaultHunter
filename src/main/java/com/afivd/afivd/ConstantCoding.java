@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.Token;
  * Currently, locates variables being assigned a value and being initialized with a value
  * Covers Fault.CONSTANTCODING
  */
-public class ConstantCoding extends CBaseListener {
+public class ConstantCoding extends CBaseListener implements FaultPattern {
     // Private Variables
     private final int sensitivity;
     private boolean inForLoop = false;
@@ -232,5 +232,13 @@ public class ConstantCoding extends CBaseListener {
                 }
             }
         }
+    }
+
+    /**
+     * Method that runs after running the parse tree
+     */
+    @Override
+    public void runAtEnd() {
+        analyze();
     }
 }

@@ -81,6 +81,7 @@ public class MainSceneController {
 
     @FXML
     protected void runButton(){
+        // TODO: May need to give codeLines to analyze later
         Analyze analyze = new Analyze();
         if(analyze.loadAndParseC(this.cFilePath)){
             List<ResultLine> results = analyze.runFaultPatterns().getResults();
@@ -90,7 +91,7 @@ public class MainSceneController {
                 Collections.sort(results, new Comparator<ResultLine>() {
                     @Override
                     public int compare(ResultLine lhs, ResultLine rhs) {
-                        // -1 - less than, 1 - greater than, 0 - equal, all inversed for descending
+                        // -1 - less than, 1 - greater than, 0 - equal, ...inverse if you want opposite direction
                         return Integer.compare(lhs.getLineNumbers()[0], rhs.getLineNumbers()[0]);
                     }
                 });
@@ -98,13 +99,8 @@ public class MainSceneController {
                 for (ResultLine result : results) {
                     this.commentTextArea.appendText(result.toString()+"\n");
                 }
-            }else{
-                this.commentTextArea.appendText("No suggestions!");
-            }
-
-        }else{
-            System.out.println("Err: C File not parsed");
-        }
+            }else{this.commentTextArea.appendText("No suggestions!");}
+        }else{System.out.println("Err: C File not parsed");}
 
         // If 'Show Tree' is selected
         if (this.showTreeCheckbox.isSelected()){
