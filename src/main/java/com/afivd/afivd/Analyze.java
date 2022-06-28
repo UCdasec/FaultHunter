@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import javax.swing.*;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.Future;
 
 /**
@@ -44,6 +45,15 @@ public class Analyze {
 
         // Output ParsedResults object that will be passed to each Listener to fill with their results
         ParsedResults results = new ParsedResults();
+
+        // VariableSearcher will be used to collect variables from the code file for use by specific patterns
+        VariableSearcher variableSearcher = new VariableSearcher();
+        ParseTreeWalker.DEFAULT.walk(variableSearcher,parseTree);
+        ArrayList<VariableSearcher.VariableTuple> codeVariables = variableSearcher.getVariables();
+
+        for (VariableSearcher.VariableTuple codeVariable : codeVariables) {
+            System.out.println(codeVariable.getVariableType() + " : " + codeVariable.getVariableName());
+        }
 
         // Crypto cryptoListener = new Crypto();
         ConstantCoding constantCodingListener = new ConstantCoding(results, 3);

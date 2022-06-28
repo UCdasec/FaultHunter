@@ -174,7 +174,6 @@ public class Branch extends CBaseListener{
     public void enterEqualityExpression(CParser.EqualityExpressionContext ctx) {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
-        System.out.println(ctx.getStart().getText() + inForCondition);
         List<CParser.RelationalExpressionContext> ctxes = ctx.relationalExpression();
         if (ctxes.size() > 1 && !inForCondition) {
             if (ctx.Equal() != null && currentlyInIfStatement) {
@@ -228,7 +227,6 @@ public class Branch extends CBaseListener{
     public void enterRelationalExpression(CParser.RelationalExpressionContext ctx) {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
-        System.out.println(ctx.getStart().getText() + inForCondition);
         List<CParser.ShiftExpressionContext> ctxes = ctx.shiftExpression();
         if (ctxes.size() > 1 && !inForCondition) {
             if (ctx.GreaterEqual() != null || ctx.LessEqual() != null && currentlyInIfStatement) {
