@@ -13,6 +13,7 @@ public class Branch extends CBaseListener{
     private boolean currentlyInIfStatement;
     private boolean inOrExpression;
     private boolean inAndExpression;
+    private boolean inForCondition = false;
 
     // Temporary Storage for nested ANDs and ORs
     private ArrayList<TempResult> tempResults = new ArrayList<>();
@@ -50,6 +51,14 @@ public class Branch extends CBaseListener{
     }
 
     // ------------------------------------------ Listener Overrides ---------------------------------------------------
+    @Override
+    public void enterForCondition(CParser.ForConditionContext ctx) {
+        this.inForCondition = true;
+    }
+    @Override
+    public void exitForCondition(CParser.ForConditionContext ctx) {
+        this.inForCondition = false;
+    }
     @Override
     public void enterSelectionStatement(CParser.SelectionStatementContext ctx) {
         if (ctx.If() != null) {currentlyInIfStatement = true;}
@@ -165,8 +174,9 @@ public class Branch extends CBaseListener{
     public void enterEqualityExpression(CParser.EqualityExpressionContext ctx) {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
+        System.out.println(ctx.getStart().getText() + inForCondition);
         List<CParser.RelationalExpressionContext> ctxes = ctx.relationalExpression();
-        if (ctxes.size() > 1) {
+        if (ctxes.size() > 1 && !inForCondition) {
             if (ctx.Equal() != null && currentlyInIfStatement) {
                 if (ctxes.get(1).getText().equalsIgnoreCase("true") || ctxes.get(1).getText().equalsIgnoreCase("false")) {
                     if(inOrExpression&&!inAndExpression){
@@ -218,8 +228,9 @@ public class Branch extends CBaseListener{
     public void enterRelationalExpression(CParser.RelationalExpressionContext ctx) {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
+        System.out.println(ctx.getStart().getText() + inForCondition);
         List<CParser.ShiftExpressionContext> ctxes = ctx.shiftExpression();
-        if (ctxes.size() > 1) {
+        if (ctxes.size() > 1 && !inForCondition) {
             if (ctx.GreaterEqual() != null || ctx.LessEqual() != null && currentlyInIfStatement) {
                 if (isInteger(ctxes.get(1).getText())) {
                     // Code commented out and replaced with result creation to trigger on every explicit integer

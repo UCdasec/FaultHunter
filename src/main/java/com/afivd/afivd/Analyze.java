@@ -50,19 +50,20 @@ public class Analyze {
         // Detect detectListener= new Detect();
         DefaultFail defaultFailListener = new DefaultFail(results);
         // Flow flowListener = new Flow();
-        // Doublecheck doublecheckListener = new Doublecheck();
-        // Loopcheck loopcheckListener = new Loopcheck();
+        // DoubleCheck doubleCheckListener = new DoubleCheck();
+        // LoopCheck loopCheckListener = new LoopCheck();
         Branch branchListener = new Branch(results);
         // Respond respondListener = new Respond();
         // Delay delayListener = new Delay();
         // Bypass bypassListener = new Bypass();
 
 
-        // Now that all Fault Pattern objects have been created, use them in the ParseTreeWalker
+        // Now that all Fault Pattern objects have been created, use them in the ParseTreeWalker to have them 'listen'
+
+        // TODO: Remove these extra function calls in the future so we can use loops to run each pattern
 
         // ParseTreeWalker.DEFAULT.walk(cryptoListener, parseTree);
         ParseTreeWalker.DEFAULT.walk(constantCodingListener, parseTree);
-        // TODO: Remove this extra function call in the future so we can use loops to run each pattern
         constantCodingListener.analyze();
         ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);
         // ParseTreeWalker.DEFAULT.walk(detectListener, parseTree);
@@ -84,9 +85,8 @@ public class Analyze {
     public void showDebugTree(){
         // Return results to display using Swing
         Future<JFrame> treeWindow = Trees.inspect(parseTree, parser);
-        try {
-            treeWindow.get().setLocation(0,0); // Make sure it doesn't appear off te screen
-        } catch (Exception ignored) {}
+        // Make sure window doesn't appear off the screen
+        try {treeWindow.get().setLocation(0,0);} catch (Exception ignored) {}
     }
 
     /**

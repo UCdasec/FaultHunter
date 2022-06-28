@@ -16,7 +16,7 @@ public class DefaultFail extends CBaseListener{
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
         if(ctx.start.getText().equalsIgnoreCase("default")){
-            output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"default_fail",ctx.getText()+" uses potentially unsafe default statement. ",lineNumber));
+            this.output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"default_fail",ctx.getText()+" uses potentially unsafe default statement. ",lineNumber));
         }
     }
 
@@ -28,23 +28,23 @@ public class DefaultFail extends CBaseListener{
     private CParser.SelectionStatementContext selectionStatementContext;
     @Override
     public void enterSelectionStatement(CParser.SelectionStatementContext ctx) {
-        depthMeter++;
-        if(depthMeter>maxDepthMeter){
-            maxDepthMeter = depthMeter;
-            selectionStatementContext = ctx;
+        this.depthMeter++;
+        if(this.depthMeter>this.maxDepthMeter){
+            this.maxDepthMeter = this.depthMeter;
+            this.selectionStatementContext = ctx;
         }
     }
     @Override
     public void exitSelectionStatement(CParser.SelectionStatementContext ctx) {
-        depthMeter--;
+        this.depthMeter--;
     }
 
     // -------------------------------------------- Helper Functions ---------------------------------------------------
     public void runAtEnd(){
-        if(selectionStatementContext.Else() != null){
-            Token token = selectionStatementContext.Else().getSymbol();
+        if(selectionStatementContext != null && selectionStatementContext.Else() != null){
+            Token token = this.selectionStatementContext.Else().getSymbol();
             int lineNumber = token.getLine();
-            output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"default_fail","\""+selectionStatementContext.Else().getText()+"\""+" uses potentially unsafe else statement. ",lineNumber));
+            this.output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"default_fail","\""+selectionStatementContext.Else().getText()+"\""+" uses potentially unsafe else statement. ",lineNumber));
         }
     }
 
