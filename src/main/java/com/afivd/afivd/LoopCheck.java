@@ -9,13 +9,15 @@ import java.util.ArrayList;
  *      o May not work with for-loops that contain breaks or continues.
  */
 public class LoopCheck extends CBaseListener implements FaultPattern{
-    private ParsedResults output;
-    private ArrayList<VariableSearcher.VariableTuple> variables;
+    private final ParsedResults output;
+    private final ArrayList<VariableSearcher.VariableTuple> variables;
+    private final ArrayList<String> codeLines;
     private boolean inForLoop = false;
 
-    public LoopCheck(ParsedResults output,ArrayList<VariableSearcher.VariableTuple> variables){
+    public LoopCheck(ParsedResults output,ArrayList<VariableSearcher.VariableTuple> variables,ArrayList<String> codeLines){
         this.variables = variables;
         this.output = output;
+        this.codeLines = codeLines;
     }
     // ------------------------------------------ Listener Overrides ---------------------------------------------------
     @Override

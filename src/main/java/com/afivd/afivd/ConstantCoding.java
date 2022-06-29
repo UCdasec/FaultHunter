@@ -36,11 +36,9 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
         this.output = output;
     }
 
-    // We are now looking inside functions for constant usage and declaration
-    // These two functions not currently needed 'enterFunctionDefinition' and 'exitFunctionDefinition'
-
     // ------------------------------------------ Listener Overrides ---------------------------------------------------
 
+    // Used to add the for-loop exception
     @Override
     public void enterIterationStatement(CParser.IterationStatementContext ctx) {
         if(ctx.getStart().getText().equalsIgnoreCase("for")){
@@ -54,6 +52,7 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
         }
     }
 
+    // Used to identify switch cases
     @Override
     public void enterLabeledStatement(CParser.LabeledStatementContext ctx){
         this.inSwitchCase = true;
@@ -83,6 +82,7 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
         this.inSwitchCase = false;
     }
 
+    // enterInitDeclarator and enterAssignmentExpression collects values in the file and finds explicit declarations
     @Override
     public void enterInitDeclarator(CParser.InitDeclaratorContext ctx) {
         Token token = ctx.getStart();
@@ -147,7 +147,34 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
         }
     }
 
-
+    /**
+     * Used to flag low hamming distance returned values
+     * @param ctx Context gathered from parse tree
+     */
+    @Override
+    public void enterJumpStatement(CParser.JumpStatementContext ctx) {
+        Token token = ctx.getStart();
+        int lineNumber = token.getLine();
+        if(ctx.getStart().getText().equalsIgnoreCase("return")){
+            if(isInteger(ctx.expression().getText())){
+                try{
+                    int returnedInt = Integer.parseInt(ctx.expression().getText());
+                    if(calculateHamming(returnedInt)>this.sensitivity){
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Low Hamming): "+ "\""+ctx.getText()+"\""+" returns low hamming distance value. ",lineNumber));
+                    }
+                }catch(NumberFormatException e){System.out.println("regex error in ConstantCoding.enterJumpStatement");}
+            }else {
+                switch (ctx.expression().getText().toUpperCase()) {
+                    case "TRUE":
+                    case "FALSE":
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Low Hamming): "+ "\""+ctx.getText()+"\""+" returns low hamming distance value. ",lineNumber));
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
 
     // TODO: Add override code to also look at "#define" constants as well. Note, define statements are not part of the
     //  current grammar file for some reason
@@ -198,6 +225,9 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
      */
     private boolean isHex(String str) {return str.matches("0x[\\p{XDigit}]+");}
 
+    /**
+     * Analyze function used after collecting the values in the file to look for explicit declarations
+     */
     public void analyze() {
         // First, search value list for trivial constants such as 0xFF and 0x0
         // TODO: For now, detect all constant integers that are declared. A better system will check to see if these values are ever
@@ -221,7 +251,7 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
         }
 
 
-        // For remaining values, calculate the Hamming distance between them and warn user if below sensitivity value
+        // For remaining values, calculate the hamming distance between them and warn user if below sensitivity value
         // Added exception
         //      * Only look inside switch statements for hamming comparison for now
         for (int i = 0; i < switchValues.size() - 1; i++) {

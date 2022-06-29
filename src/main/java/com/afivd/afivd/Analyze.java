@@ -18,6 +18,11 @@ import java.util.concurrent.Future;
 public class Analyze {
     private CParser parser;
     private CParser.CompilationUnitContext parseTree;
+    private final ArrayList<String> codeLines;
+
+    public Analyze(ArrayList<String> codeLines){
+        this.codeLines = codeLines;
+    }
 
     /**
      * loadAndParseC prepares the generated C parser and parseTree with the C contents of the passed C file
@@ -55,17 +60,22 @@ public class Analyze {
 
         ArrayList<FaultPattern> faultPatterns = new ArrayList<>();
 
+        // The code stored in codeLines can be modified without worry that it will affect other patterns, parseTree is
+        // already created.
+
         // Crypto cryptoListener = new Crypto();
         faultPatterns.add(new ConstantCoding(results, 3));
         // Detect detectListener= new Detect();
         faultPatterns.add(new DefaultFail(results));
         // Flow flowListener = new Flow();
         // DoubleCheck doubleCheckListener = new DoubleCheck();
-        faultPatterns.add(new LoopCheck(results,codeVariables));
+        faultPatterns.add(new LoopCheck(results,codeVariables,codeLines));
         faultPatterns.add(new Branch(results));
         // Respond respondListener = new Respond();
         // Delay delayListener = new Delay();
         // Bypass bypassListener = new Bypass();
+
+        // Using 'codeLines' after patterns have added replacements can be used to show replacements potentially
 
 
         // Now that all Fault Pattern objects have been created, use them in the ParseTreeWalker to have them 'listen'
@@ -73,23 +83,9 @@ public class Analyze {
         for(FaultPattern faultPattern : faultPatterns){
             ParseTreeWalker.DEFAULT.walk((ParseTreeListener) faultPattern,parseTree);
             faultPattern.runAtEnd();
+            // TODO: If a pattern suggests replacements, decide whether to have it included with the resultLine, or pull it out
+            //  separately.
         }
-
-        // TODO: Remove these extra function calls in the future so we can use loops to run each pattern
-
-        // ParseTreeWalker.DEFAULT.walk(cryptoListener, parseTree);
-        //ParseTreeWalker.DEFAULT.walk(constantCodingListener, parseTree);
-        //constantCodingListener.runAtEnd();
-        //ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);
-        // ParseTreeWalker.DEFAULT.walk(detectListener, parseTree);
-        //ParseTreeWalker.DEFAULT.walk(defaultFailListener, parseTree);
-        //defaultFailListener.runAtEnd();
-        // ParseTreeWalker.DEFAULT.walk(doubleCheckListener, parseTree);
-        // ParseTreeWalker.DEFAULT.walk(loopCheckListener, parseTree);
-        // ParseTreeWalker.DEFAULT.walk(branchListener, parseTree);
-        // ParseTreeWalker.DEFAULT.walk(respondListener, parseTree);
-        // ParseTreeWalker.DEFAULT.walk(delayListener, parseTree);
-        // ParseTreeWalker.DEFAULT.walk(bypassListener, parseTree);
 
         return results;
     }

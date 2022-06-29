@@ -81,8 +81,8 @@ public class MainSceneController {
 
     @FXML
     protected void runButton(){
-        // TODO: May need to give codeLines to analyze later
-        Analyze analyze = new Analyze();
+        // Give codeLines for patterns that offer replacement
+        Analyze analyze = new Analyze(codeLines);
         if(analyze.loadAndParseC(this.cFilePath)){
             List<ResultLine> results = analyze.runFaultPatterns().getResults();
 
