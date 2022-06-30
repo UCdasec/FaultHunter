@@ -4,10 +4,7 @@
 package com.afivd.afivd;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.web.WebEngine;
 import javafx.stage.FileChooser;
 import javafx.scene.web.WebView;
@@ -40,6 +37,14 @@ public class MainSceneController {
     private TextArea commentTextArea;
     @FXML
     private CheckBox showTreeCheckbox;
+    @FXML
+    private ToggleGroup showToggleGroup;
+    @FXML
+    private RadioButton showCommentsToggleButton;
+    @FXML
+    private RadioButton showReplacementsToggleButton;
+    @FXML
+    private TextArea replacementTextArea;
 
     //@FXML
     //private WebView codeWebView;
@@ -59,13 +64,14 @@ public class MainSceneController {
             if (cFile.isFile() && cFile.canRead() && cFile.canWrite()) {
                 this.codeLines = new ArrayList<>(Files.readAllLines(Paths.get(cFile.toURI())));
                 this.numCodeLines = this.codeLines.size();
-                codeTextArea.setText("");
+                this.codeTextArea.setText("");
                 StringBuilder plainCode = new StringBuilder();
                 for(int i = 0; i<this.numCodeLines;i++){
                     plainCode.append(i+1).append(": ").append(this.codeLines.get(i)).append("\n"); // Line number appended
                 }
                 this.codeTextArea.setText(plainCode.toString());
                 this.commentTextArea.clear();
+                this.replacementTextArea.clear();
                 this.cFilePath = cFile.getAbsolutePath();
 
                 // Enable run button
@@ -82,7 +88,7 @@ public class MainSceneController {
     @FXML
     protected void runButton(){
         // Give codeLines for patterns that offer replacement
-        Analyze analyze = new Analyze(codeLines);
+        Analyze analyze = new Analyze(this.codeLines);
         if(analyze.loadAndParseC(this.cFilePath)){
             List<ResultLine> results = analyze.runFaultPatterns().getResults();
 
@@ -99,7 +105,15 @@ public class MainSceneController {
                 for (ResultLine result : results) {
                     this.commentTextArea.appendText(result.toString()+"\n");
                 }
-            }else{this.commentTextArea.appendText("No suggestions!");}
+                StringBuilder replacementCode = new StringBuilder();
+                for(int i = 0; i<this.codeLines.size();i++){
+                    replacementCode.append(this.codeLines.get(i)).append("\n"); // Line number appended
+                }
+                this.replacementTextArea.setText(replacementCode.toString());
+            }else{
+                this.commentTextArea.setText("No suggestions!");
+                this.replacementTextArea.setText("No replacements!");
+            }
         }else{System.out.println("Err: C File not parsed");}
 
         // If 'Show Tree' is selected
@@ -116,6 +130,21 @@ public class MainSceneController {
         this.runButton.setDisable(true);
         this.loadFileButton.setDisable(false);
     }
+
+    @FXML
+    protected void onShowToggleSelection(){
+        if(this.showCommentsToggleButton.isSelected()){
+            this.commentLabel.setText("Comments: ");
+            this.commentTextArea.setVisible(true);
+            this.replacementTextArea.setVisible(false);
+
+        }else if(this.showReplacementsToggleButton.isSelected()){
+            this.commentLabel.setText("Replacements: ");
+            this.commentTextArea.setVisible(false);
+            this.replacementTextArea.setVisible(true);
+        }
+    }
+
 
     /*
     private void runWebView(ParsedResults results){

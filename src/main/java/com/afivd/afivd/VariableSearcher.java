@@ -26,6 +26,8 @@ public class VariableSearcher extends CBaseListener{
     // TODO: Wish I didn't have to copy and paste the same code for both listeners, but I cannot use the superclass to get the contents
     //  available to both contexts.
 
+    // TODO: Add to both: record the function that the variable is in and modify variable tuple
+
     @Override
     public void enterForDeclaration(CParser.ForDeclarationContext ctx){
         // Collect all variables and store them in a Tuple

@@ -61,7 +61,7 @@ public class Analyze {
         ArrayList<FaultPattern> faultPatterns = new ArrayList<>();
 
         // The code stored in codeLines can be modified without worry that it will affect other patterns, parseTree is
-        // already created.
+        // already created. Make sure to order Fault Patterns appropriately if the codeLines will be modified
 
         // Crypto cryptoListener = new Crypto();
         faultPatterns.add(new ConstantCoding(results, 3));
@@ -75,7 +75,7 @@ public class Analyze {
         // Delay delayListener = new Delay();
         // Bypass bypassListener = new Bypass();
 
-        // Using 'codeLines' after patterns have added replacements can be used to show replacements potentially
+        // !!! codeLines used by GUI at end of analyze to display code with added replacements.
 
 
         // Now that all Fault Pattern objects have been created, use them in the ParseTreeWalker to have them 'listen'
@@ -83,8 +83,6 @@ public class Analyze {
         for(FaultPattern faultPattern : faultPatterns){
             ParseTreeWalker.DEFAULT.walk((ParseTreeListener) faultPattern,parseTree);
             faultPattern.runAtEnd();
-            // TODO: If a pattern suggests replacements, decide whether to have it included with the resultLine, or pull it out
-            //  separately.
         }
 
         return results;
