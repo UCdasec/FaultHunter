@@ -11,20 +11,20 @@ import org.antlr.v4.runtime.Token;
 public class ConstantCoding extends CBaseListener implements FaultPattern {
     // Private Variables
     private final int sensitivity;
-    private boolean inForLoop = false;
+    private boolean inForLoop    = false;
     private boolean inSwitchCase = false;
-    private ParsedResults output;
+    private final ParsedResults output;
 
     // TODO: replace this with inner class: these lists are sort of messy
     // Parser Results, correlated by same index value
-    private List<Integer> lineNumbers = new ArrayList<>();
-    private List<String> expressionContent = new ArrayList<>();
-    private List<Integer> values = new ArrayList<>();
+    private final List<Integer> lineNumbers      = new ArrayList<>();
+    private final List<String> expressionContent = new ArrayList<>();
+    private final List<Integer> values           = new ArrayList<>();
 
     // Specific lists for values inside switch statement cases only
-    private List<Integer> switchLineNumbers = new ArrayList<>();
-    private List<String> switchExpressionContent = new ArrayList<>();
-    private List<Integer> switchValues = new ArrayList<>();
+    private final List<Integer> switchLineNumbers      = new ArrayList<>();
+    private final List<String> switchExpressionContent = new ArrayList<>();
+    private final List<Integer> switchValues           = new ArrayList<>();
 
     /**
      * ConstantCoding Constructor requires the CParser object, output storage ParsedResults, and a hamming sensitivity

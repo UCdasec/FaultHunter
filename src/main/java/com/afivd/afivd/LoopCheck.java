@@ -1,7 +1,6 @@
 package com.afivd.afivd;
 
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,13 +9,17 @@ import java.util.regex.Pattern;
  * Additionally, it will automatically rename the iterator variable if another variable with the same name is in the same
  * or higher scope.
  *      o May not work with for-loops that contain breaks or continues.
+ * Covers Fault.LOOPCHECK
  */
 public class LoopCheck extends CBaseListener implements FaultPattern{
+    // Private Variables
     private final ParsedResults output;
     private final ArrayList<VariableSearcher.VariableTuple> variables;
     private final ArrayList<String> codeLines;
-    private boolean inForLoop = false;
+    private final ArrayList<String> forConditionals = new ArrayList<>();
+    private final ArrayList<String> ifConditionals  = new ArrayList<>();
 
+    // Constructor
     public LoopCheck(ParsedResults output,ArrayList<VariableSearcher.VariableTuple> variables,ArrayList<String> codeLines){
         this.variables = variables;
         this.output = output;
@@ -27,8 +30,6 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
     @Override
     public void enterIterationStatement(CParser.IterationStatementContext ctx) {
         if(ctx.getStart().getText().equalsIgnoreCase("for")){
-            //System.out.println(ctx.start.getText()+":"+ctx.start.getLine()+":"+ctx.start.getCharPositionInLine()+" | "+ctx.stop.getText()+":"+ctx.stop.getLine()+":"+ctx.stop.getCharPositionInLine());
-
             // If there is already a variable in a same or higher depth, we are forced to rename
             // If there is already a variable in a lesser depth, look inside if-statements and make sure that a loop check hasn't already been added.
 
@@ -45,7 +46,6 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
                 // Make a count of how many variables are named the same as the for-variable
                 if(forDeclaration.initDeclaratorList().initDeclarator().size() == 1){
                     String varName = forDeclaration.initDeclaratorList().initDeclarator().get(0).declarator().directDeclarator().getText();
-
                     // TODO: Most likely we only need to look for primitives (stopping at typeSpecifier, but could also look at typeDefName)
                     String varType = forDeclaration.declarationSpecifiers().declarationSpecifier().get(0).typeSpecifier().getText();
                     int sameNameVarCount=0;
@@ -74,7 +74,7 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
                     // Try to match indentation by checking to see if the initial substring is all whitespace, if
                     // it is, then we can copy it and use it for all our insertions. If there is actual code in the substring
                     // we will have to respect it.
-                    // TODO: Find a better way for this indentation code later
+                    // TODO: Find a better way to implement this indentation code later
                     String indentation = "";
                     String indentationCheck = codeLines.get(startLine-1).substring(0,startChar);
                     Pattern pattern = Pattern.compile("([\\s ]+)");
@@ -93,7 +93,7 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
                         }
                     }
 
-                    // TODO: entire for-statement is currently on one line, maybe add a 'pretty print' system later.
+                    // TODO: entire for-statement body is currently on one line, maybe add a 'pretty print' system later.
                     String finishedInsertion =
                             indentation+forLoopPrefix +"\n"+
                                     indentation+ "for("+modifiedForDeclaration+"; " +conditionalForExpression+"; "+mathForExpression+")"+"\n"+
@@ -138,12 +138,19 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
             }else if(ctx.forCondition().forDeclaration() == null && ctx.forCondition().expression().assignmentExpression() != null){
                 // Need to collect for-conditional expressions and if-conditional expressions until the end
                 // If there isn't an if-conditional expression, put one after the for-loop of the for-conditional expression
+
+
             }
         }
     }
 
     // -------------------------------------------- Helper Functions ---------------------------------------------------
 
+    /**
+     * Given a string of an existing variable name, see if it is already being used in a lower scope to rename if necessary
+     * @param varName Potential Variable Name
+     * @return A String of a working variable name
+     */
     public String iterativeRename(String varName){
         Pattern pattern = Pattern.compile("([a-zA-Z_]+)(\\d*)");
         Matcher matcher = pattern.matcher(varName);
@@ -176,14 +183,4 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
     public void runAtEnd() {
 
     }
-
-    // Collect the for-expression that has the conditional check. Then, check after the for-loop for a conditional that has the same
-    // conditional check (to ensure that LoopCheck hasn't already been coded). If not, you will need to then pull out the variable of
-    // for-loop (if is a new declaration) and put a layer above in scope. Afterward, make the if-statement right after the for-loop
-    // with the previously collected conditional check from the for-loop.
-    //  Ex: for(int i = 0; i < 10; i++){... would have after the for-loop "if(i<10){faultDetect())"
-    //      o This is because the for-loop only runs while the if-statement evaluates to true. It should be false afterward
-
-
-
 }

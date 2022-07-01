@@ -85,6 +85,9 @@ public class MainSceneController {
         }
     }
 
+    /**
+     * When the runButton is pressed, every fault pattern is run and the results are retrieved using the Analyze class.
+     */
     @FXML
     protected void runButton(){
         // Give codeLines for patterns that offer replacement
@@ -131,6 +134,10 @@ public class MainSceneController {
         this.loadFileButton.setDisable(false);
     }
 
+    /**
+     * When 'Show Comments' is selected, only the commentsTextArea is shown, while when 'Show Replacements' is selected,
+     * only the replacementsTextArea is shown.
+     */
     @FXML
     protected void onShowToggleSelection(){
         if(this.showCommentsToggleButton.isSelected()){
@@ -149,7 +156,7 @@ public class MainSceneController {
     /*
     private void runWebView(ParsedResults results){
         WebEngine webEngine = this.codeWebView.getEngine();
-        webEngine.loadContent("","text/html");
+        webEngine.loadContent("","text/html"); // Set to HTML file created by ResultsToWebView
 
     }
 

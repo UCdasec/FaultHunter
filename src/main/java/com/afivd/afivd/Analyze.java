@@ -31,11 +31,11 @@ public class Analyze {
      */
     public boolean loadAndParseC(String filePath) {
         try {
-            CharStream charStream = CharStreams.fromFileName(filePath); // 0. Load C File
-            CLexer lexer = new CLexer(charStream);                      // 1. Get lexer
-            CommonTokenStream tokens = new CommonTokenStream(lexer);    // 2. Get list of matched tokens
-            this.parser = new CParser(tokens);                          // 3. Pass tokens to parser
-            this.parseTree = this.parser.compilationUnit();             // 4. Generate ParseTree to scan through
+            CharStream charStream    = CharStreams.fromFileName(filePath);      // 0. Load C File
+            CLexer lexer             = new CLexer(charStream);                  // 1. Get lexer
+            CommonTokenStream tokens = new CommonTokenStream(lexer);            // 2. Get list of matched tokens
+            this.parser              = new CParser(tokens);                     // 3. Pass tokens to parser
+            this.parseTree           = this.parser.compilationUnit();           // 4. Generate ParseTree to scan through
             return true;
         }catch(IOException e){
             e.printStackTrace();
@@ -56,8 +56,8 @@ public class Analyze {
         VariableSearcher variableSearcher = new VariableSearcher();
         ParseTreeWalker.DEFAULT.walk(variableSearcher,parseTree);
         ArrayList<VariableSearcher.VariableTuple> codeVariables = variableSearcher.getVariables();
-        //for (VariableSearcher.VariableTuple codeVariable : codeVariables) {System.out.println(codeVariable.getVariableType() + " : " + codeVariable.getVariableName() + " : " + codeVariable.getDepth());}
 
+        // Hold all FaultPatterns to be run in an array to run in a loop
         ArrayList<FaultPattern> faultPatterns = new ArrayList<>();
 
         // The code stored in codeLines can be modified without worry that it will affect other patterns, parseTree is

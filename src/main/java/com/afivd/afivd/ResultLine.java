@@ -13,7 +13,6 @@ public class ResultLine{
     public static final int MULTI_LOCATION  = 0b00000010; // Results/Advice that pertain to multiple, potentially noncontinuous lines
     public static final int SPANNING_RESULT = 0b00000011; // Results/Advice that pertain to a continuous range of code lines
 
-
     // Private Variables
     private final int[] lineNumbers;
     private final String resultContents;

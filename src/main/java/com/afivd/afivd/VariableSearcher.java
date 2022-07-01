@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VariableSearcher extends CBaseListener{
-    private ArrayList<VariableTuple> variables = new ArrayList<>(); // Name, Type
+    private final ArrayList<VariableTuple> variables = new ArrayList<>(); // Name, Type
 
     // Will make a simple tuple class
     public class VariableTuple{

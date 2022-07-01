@@ -2,8 +2,12 @@ package com.afivd.afivd;
 
 import org.antlr.v4.runtime.Token;
 
+/**
+ * Flags else and default blocks in the parsed C code as potentially unsafe (in the terms of fault injection resistance
+ * Covers Fault.DEFAULTFAIL
+ */
 public class DefaultFail extends CBaseListener implements FaultPattern{
-    private ParsedResults output;
+    private final ParsedResults output;
 
     public DefaultFail(ParsedResults output){
         this.output = output;
@@ -23,7 +27,7 @@ public class DefaultFail extends CBaseListener implements FaultPattern{
     // Listener to catch 'else{...}' code blocks
     // Thought-process: When entering a selectionStatement, look for an else token at the third position. If there is an else token,
     // look into the statement at the fourth position, and go as deep as possible
-    private int depthMeter = 0;
+    private int depthMeter    = 0;
     private int maxDepthMeter = 0;
     private CParser.SelectionStatementContext selectionStatementContext;
     @Override

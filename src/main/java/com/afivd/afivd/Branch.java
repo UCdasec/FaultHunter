@@ -16,10 +16,10 @@ public class Branch extends CBaseListener implements FaultPattern{
     private boolean inForCondition = false;
 
     // Temporary Storage for nested ANDs and ORs
-    private ArrayList<TempResult> tempResults = new ArrayList<>();
+    private final ArrayList<TempResult> tempResults = new ArrayList<>();
 
     // Output Array
-    private ParsedResults output;
+    private final ParsedResults output;
 
     /**
      * Branch pattern Constructor requires the Parser and the output storage, ParsedResults
@@ -40,44 +40,52 @@ public class Branch extends CBaseListener implements FaultPattern{
      * are present. This helper class assists in determining if the overall statement will be considered trivial or not.
      */
     private static class TempResult{
+        // Flags
         public static final short AND_FLAG = 0b00000000;
-        public static final short OR_FLAG = 0b00000001;
+        public static final short OR_FLAG  = 0b00000001;
+
+        // Private Variables
         private final boolean isTrivial;
         private final short selectionContextFlag;
         private final ResultLine resultLine;
+
+        // Constructor
         public TempResult(boolean isTrivial, short selectionContextFlag, ResultLine resultLine){
             this.isTrivial = isTrivial;
             this.selectionContextFlag = selectionContextFlag;
             this.resultLine = resultLine;
         }
+
+        // Getters
         public boolean isTrivial() {return isTrivial;}
         public short getSelectionContextFlag() {return selectionContextFlag;}
         public ResultLine getResultLine() {return resultLine;}
     }
 
     // ------------------------------------------ Listener Overrides ---------------------------------------------------
+    // Records whether the parse tree is inside a for-condition, if so ignore branches
     @Override
-    public void enterForCondition(CParser.ForConditionContext ctx) {
-        this.inForCondition = true;
-    }
+    public void enterForCondition(CParser.ForConditionContext ctx) {this.inForCondition = true;}
     @Override
-    public void exitForCondition(CParser.ForConditionContext ctx) {
-        this.inForCondition = false;
-    }
+    public void exitForCondition(CParser.ForConditionContext ctx) {this.inForCondition = false;}
+
+    // Ensure we are specifically inside an if-statement selectionStatement, and resets storage for nested ORs and ANDs
     @Override
     public void enterSelectionStatement(CParser.SelectionStatementContext ctx) {
         if (ctx.If() != null) {currentlyInIfStatement = true;}
         // Clear TempResults for use if the if-statement has OR or AND statements
         tempResults.clear();
     }
+
+    // Upon leaving a selection statement, count nested ANDs and ORs to determine if the condition is trivial
     @Override
     public void exitSelectionStatement(CParser.SelectionStatementContext ctx) {
         if (ctx.If() != null) {currentlyInIfStatement = false;}
         // Now, before we leave the if-statement, lets see if we have a stored number of TempResults that we may need to report on
-        int numTrivialORStatements=0;
-        int numTrivialANDStatements=0;
-        int numNonTrivialORStatements=0;
-        int numNonTrivialANDStatements=0;
+        int numTrivialORStatements     = 0;
+        int numTrivialANDStatements    = 0;
+        int numNonTrivialORStatements  = 0;
+        int numNonTrivialANDStatements = 0;
         for(TempResult tempResult : tempResults){
             if(tempResult.isTrivial()){
                 if(tempResult.getSelectionContextFlag() == TempResult.OR_FLAG){
@@ -174,7 +182,7 @@ public class Branch extends CBaseListener implements FaultPattern{
     @Override
     public void exitLogicalAndExpression(CParser.LogicalAndExpressionContext ctx) {this.inAndExpression=false;}
 
-    // Just for equal to (==)
+    // Just for equal to (==), makes the raw results that we will look at after we leave the if-statement
     @Override
     public void enterEqualityExpression(CParser.EqualityExpressionContext ctx) {
         Token token = ctx.getStart();
@@ -196,11 +204,6 @@ public class Branch extends CBaseListener implements FaultPattern{
 
 
                 } else if (isInteger(ctxes.get(1).getText())) {
-                    // Code commented out and replaced with result creation to trigger on every explicit integer
-                    /*
-                    int number = Integer.parseInt(ctx.relationalExpression(1).getText());
-                    if (number == 0 || number == 1) {output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber));}
-                     */
                     if(inOrExpression&&!inAndExpression){
                         tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber)));
                     }else if (!inOrExpression&&inAndExpression){
@@ -227,7 +230,7 @@ public class Branch extends CBaseListener implements FaultPattern{
         }
     }
 
-    // For less than or equal to (<=) and greater than or equal to (>=)
+    // For less than or equal to (<=) and greater than or equal to (>=), makes the raw results that we will look at after we leave the if-statement
     @Override
     public void enterRelationalExpression(CParser.RelationalExpressionContext ctx) {
         Token token = ctx.getStart();
@@ -236,11 +239,6 @@ public class Branch extends CBaseListener implements FaultPattern{
         if (ctxes.size() > 1 && !inForCondition) {
             if (ctx.GreaterEqual() != null || ctx.LessEqual() != null && currentlyInIfStatement) {
                 if (isInteger(ctxes.get(1).getText())) {
-                    // Code commented out and replaced with result creation to trigger on every explicit integer
-                    /*
-                    int number = Integer.parseInt(ctx.relationalExpression(1).getText());
-                    if (number == 0 || number == 1) {output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"branch",ctx.getText()+" Using bool.",lineNumber));}
-                     */
                     if(inOrExpression&&!inAndExpression){
                         tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using explicit integer instead of variable in branch.",lineNumber)));
                     }else if (!inOrExpression&&inAndExpression){

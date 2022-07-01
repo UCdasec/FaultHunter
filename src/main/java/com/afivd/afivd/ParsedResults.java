@@ -9,7 +9,7 @@ import java.util.ArrayList;
  * ParsedResults is used to hold the results of a Fault Pattern command being run, for use later
  */
 public class ParsedResults {
-    private ArrayList<ResultLine> internalResults;
+    private final ArrayList<ResultLine> internalResults;
 
     public ParsedResults(){
         this.internalResults = new ArrayList<>();
