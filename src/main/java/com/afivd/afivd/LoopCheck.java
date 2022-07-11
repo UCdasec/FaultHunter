@@ -131,7 +131,15 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
                         codeLines.set((startLine-1), codeLines.get(startLine-1).substring(0,startChar+1)
                                 +finishedInsertion+codeLines.get(endLine-1).substring(endChar));
                     }
+
+                    // TODO: Reform codeLines for a clean file
+                    //for(String codeLine : codeLines){
+                    //    codeLine.split("[\n]");
+                    //}
+
                     this.output.appendResult(new ResultLine(ResultLine.SPANNING_RESULT,"loop_check","Recommended addition of loop-completion check regarding for-loop at "+startLine+" to "+endLine+". See replacements! ",startLine,endLine));
+
+                    // TODO: If faultDetect() is not a function in the code file yet, add it
                 }
 
             // Case 2: The for-variable has been declared elsewhere, and is being assigned to something here in the forDeclaration slot

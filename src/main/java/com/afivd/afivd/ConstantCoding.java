@@ -159,7 +159,7 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
             if(isInteger(ctx.expression().getText())){
                 try{
                     int returnedInt = Integer.parseInt(ctx.expression().getText());
-                    if(calculateHamming(returnedInt)>this.sensitivity){
+                    if(calculateHamming(returnedInt)<this.sensitivity){
                         output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Low Hamming): "+ "\""+ctx.getText()+"\""+" returns low hamming distance value. ",lineNumber));
                     }
                 }catch(NumberFormatException e){System.out.println("regex error in ConstantCoding.enterJumpStatement");}

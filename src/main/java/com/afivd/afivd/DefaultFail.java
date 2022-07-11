@@ -25,33 +25,22 @@ public class DefaultFail extends CBaseListener implements FaultPattern{
     }
 
     // Listener to catch 'else{...}' code blocks
-    // Thought-process: When entering a selectionStatement, look for an else token at the third position. If there is an else token,
-    // look into the statement at the fourth position, and go as deep as possible
-    private int depthMeter    = 0;
-    private int maxDepthMeter = 0;
-    private CParser.SelectionStatementContext selectionStatementContext;
     @Override
     public void enterSelectionStatement(CParser.SelectionStatementContext ctx) {
-        this.depthMeter++;
-        if(this.depthMeter>this.maxDepthMeter){
-            this.maxDepthMeter = this.depthMeter;
-            this.selectionStatementContext = ctx;
+        if(ctx.Else() != null && ctx.statement().get(1)!=null){
+            if(ctx.statement().get(1).selectionStatement()!=null){
+                // Do nothing, this is an else-if statement
+            }else if(ctx.statement().get(1).compoundStatement() != null || ctx.statement().get(1).expressionStatement() != null){
+                // At this point we should be inside an else body
+                this.output.appendResult(new ResultLine(ResultLine.SINGLE_LINE, "default_fail", "\"" + ctx.Else().getText() + "\"" + " uses potentially unsafe else statement. ", ctx.Else().getSymbol().getLine()));
+            }
         }
     }
-    @Override
-    public void exitSelectionStatement(CParser.SelectionStatementContext ctx) {
-        this.depthMeter--;
-    }
+
 
     // -------------------------------------------- Helper Functions ---------------------------------------------------
     @Override
-    public void runAtEnd(){
-        if(selectionStatementContext != null && selectionStatementContext.Else() != null){
-            Token token = this.selectionStatementContext.Else().getSymbol();
-            int lineNumber = token.getLine();
-            this.output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"default_fail","\""+selectionStatementContext.Else().getText()+"\""+" uses potentially unsafe else statement. ",lineNumber));
-        }
+    public void runAtEnd () {
+        // Nothing currently needed for DefaultFail
     }
-
-
 }
