@@ -230,8 +230,7 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
      */
     public void analyze() {
         // First, search value list for trivial constants such as 0xFF and 0x0
-        // TODO: For now, detect all constant integers that are declared. A better system will check to see if these values are ever
-        //  modified by code, and thus can be ignored by the constant coding pattern
+        // TODO: For now, all integers with hamming less than the sensitivity (when calculated against zero) are detected in the default
         for (int i = 0; i < values.size(); i++) {
             int value = values.get(i);
             switch (value) {
@@ -245,7 +244,9 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
                     output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0xFF. Consider replacement.",lineNumbers.get(i)));
                     break;
                 default:
-                    output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" uses explicit integer "+value,lineNumbers.get(i)));
+                    if(calculateHamming(value)>sensitivity) {
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE, "constant_coding", "(Trivial): " + "\"" + expressionContent.get(i) + "\"" + " uses explicit integer " + value, lineNumbers.get(i)));
+                    }
                     break;
             }
         }
