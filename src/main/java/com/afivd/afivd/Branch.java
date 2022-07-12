@@ -269,4 +269,3 @@ public class Branch extends CBaseListener implements FaultPattern{
         return str.matches("-?\\d+");
     }
 }
-
