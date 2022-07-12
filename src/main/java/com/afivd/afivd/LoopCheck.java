@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  * LoopCheck is a replacement pattern that adds an if-statement after a for-loop to ensure that it completed successfully.
  * Additionally, it will automatically rename the iterator variable if another variable with the same name is in the same
  * or higher scope.
- *      o May not work with for-loops that contain breaks or continues.
+ *      o Probably will not work with for-loops that contain breaks or continues.
  * Covers Fault.LOOPCHECK
  */
 public class LoopCheck extends CBaseListener implements FaultPattern{
@@ -16,8 +16,6 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
     private final ParsedResults output;
     private final ArrayList<VariableSearcher.VariableTuple> variables;
     private final ArrayList<String> codeLines;
-    private final ArrayList<String> forConditionals = new ArrayList<>();
-    private final ArrayList<String> ifConditionals  = new ArrayList<>();
 
     // Constructor
     public LoopCheck(ParsedResults output,ArrayList<VariableSearcher.VariableTuple> variables,ArrayList<String> codeLines){
@@ -74,24 +72,8 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
                     // Try to match indentation by checking to see if the initial substring is all whitespace, if
                     // it is, then we can copy it and use it for all our insertions. If there is actual code in the substring
                     // we will have to respect it.
-                    // TODO: Find a better way to implement this indentation code later
-                    String indentation = "";
                     String indentationCheck = codeLines.get(startLine-1).substring(0,startChar);
-                    Pattern pattern = Pattern.compile("([\\s ]+)");
-                    Matcher matcher = pattern.matcher(indentationCheck);
-                    if(matcher.find()){
-                        if(matcher.group(1)!= null && !matcher.group(1).equals("")){
-                            indentation = matcher.group(1);
-                            int spaceCount = (int)indentation.chars().filter(ch -> ch == ' ').count();
-                            // TODO: Even though the regex grabs a tab, it becomes four spaces instead?
-                            //  Have to manually count spaces so it looks right
-                            if(spaceCount % 4 == 0){
-                                for (int i = 0; i < spaceCount/4; i++) {
-                                    indentation = indentation + "\t";
-                                }
-                            }
-                        }
-                    }
+                    String indentation = returnIndentation(indentationCheck);
 
                     // TODO: entire for-statement body is currently on one line, maybe add a 'pretty print' system later.
                     String finishedInsertion =
@@ -132,27 +114,69 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
                                 +finishedInsertion+codeLines.get(endLine-1).substring(endChar));
                     }
 
-                    // TODO: Reform codeLines for a clean file
-                    //for(String codeLine : codeLines){
-                    //    codeLine.split("[\n]");
-                    //}
-
                     this.output.appendResult(new ResultLine(ResultLine.SPANNING_RESULT,"loop_check","Recommended addition of loop-completion check regarding for-loop at "+startLine+" to "+endLine+". See replacements! ",startLine,endLine));
 
-                    // TODO: If faultDetect() is not a function in the code file yet, add it
+                    // TODO: If faultDetect() is not a function in the 'replacement' code file yet, add it
                 }
 
-            // Case 2: The for-variable has been declared elsewhere, and is being assigned to something here in the forDeclaration slot
+            // TODO: Case 2: The for-variable has been declared elsewhere, and is being assigned to something here in the forDeclaration slot
             }else if(ctx.forCondition().forDeclaration() == null && ctx.forCondition().expression().assignmentExpression() != null){
                 // Need to collect for-conditional expressions and if-conditional expressions until the end
                 // If there isn't an if-conditional expression, put one after the for-loop of the for-conditional expression
 
+                // We can assume for now that we can just add the additional code right afterward
+                int startLine = ctx.start.getLine();
+                int endLine = ctx.stop.getLine();
+                int startChar = ctx.start.getCharPositionInLine();
+
+                String indentationCheck = codeLines.get(startLine-1).substring(0,startChar);
+                String indentation = returnIndentation(indentationCheck);
+                String conditionalForExpression = ctx.forCondition().forExpression(0).getText();
+                String forLoopSuffix = "if("+conditionalForExpression+"){faultDetect();}";
+
+                // Add if-statement after for-loop
+                codeLines.set((endLine-1),codeLines.get((endLine-1))+"\n"+indentation+forLoopSuffix+"\n");
+
+                this.output.appendResult(new ResultLine(ResultLine.SPANNING_RESULT,"loop_check","Recommended addition of loop-completion check regarding for-loop at "+startLine+" to "+endLine+". See replacements! ",startLine,endLine));
 
             }
+
         }
     }
 
     // -------------------------------------------- Helper Functions ---------------------------------------------------
+
+    public void reformatCodeLines(ArrayList<String> codeLines){
+        // TODO: Reform codeLines for a clean file
+        //for(String codeLine : codeLines){
+        //    codeLine.split("[\n]");
+        //}
+    }
+
+    /**
+     * Returns an amount of whitespace equal to the amount used in the starting string. Could be done better without regex
+     * @param startingString String whose whitespace is copied
+     * @return A string of whitespace
+     */
+    public String returnIndentation(String startingString){
+        String tempString = "";
+        Pattern pattern = Pattern.compile("([\\s ]+)");
+        Matcher matcher = pattern.matcher(startingString);
+        if(matcher.find()){
+            if(matcher.group(1)!= null && !matcher.group(1).equals("")){
+                tempString = matcher.group(1);
+                int spaceCount = (int)tempString.chars().filter(ch -> ch == ' ').count();
+                // TODO: Even though the regex grabs a tab, it becomes four spaces instead?
+                //  Have to manually count spaces so it looks right
+                if(spaceCount % 4 == 0){
+                    for (int i = 0; i < spaceCount/4; i++) {
+                        tempString = tempString + "\t";
+                    }
+                }
+            }
+        }
+        return tempString;
+    }
 
     /**
      * Given a string of an existing variable name, see if it is already being used in a lower scope to rename if necessary
@@ -189,6 +213,6 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
      */
     @Override
     public void runAtEnd() {
-
+        // Will run case 2 code here to check through the if-statements to add the check after the for-loop if necessary
     }
 }
