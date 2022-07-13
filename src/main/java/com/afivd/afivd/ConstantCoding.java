@@ -105,8 +105,6 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
                     lineNumbers.add(lineNumber);
                     expressionContent.add(ctx.getText());
                     values.add(number);
-                }else{
-                    System.out.println("Hamming"+compareHamming(number,0)+ctx.getText()+" at "+lineNumber);
                 }
             }
 
@@ -166,9 +164,9 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
             if(isInteger(ctx.expression().getText())){
                 try{
                     int returnedInt = Integer.parseInt(ctx.expression().getText());
-
+                    if(calculateHamming(returnedInt)<this.sensitivity){
                         output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Low Hamming): "+ "\""+ctx.getText()+"\""+" returns low hamming distance value. ",lineNumber));
-
+                    }
                 }catch(NumberFormatException e){System.out.println("regex error in ConstantCoding.enterJumpStatement");}
             }else {
                 switch (ctx.expression().getText().toUpperCase()) {
@@ -184,7 +182,7 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
     }
 
     // TODO: Add override code to also look at "#define" constants as well. Note, define statements are not part of the
-    //  current grammar file for some reason
+    //  current grammar file. This is because #define statements are preprocessed
 
     // -------------------------------------------- Helper Functions ---------------------------------------------------
 
