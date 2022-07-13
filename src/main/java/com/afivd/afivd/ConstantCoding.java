@@ -101,9 +101,13 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
 
             // Case statements will be handled differently than normal constants
             if(!inSwitchCase) {
-                lineNumbers.add(lineNumber);
-                expressionContent.add(ctx.getText());
-                values.add(number);
+                if(compareHamming(number,0)<this.sensitivity) {
+                    lineNumbers.add(lineNumber);
+                    expressionContent.add(ctx.getText());
+                    values.add(number);
+                }else{
+                    System.out.println("Hamming"+compareHamming(number,0)+ctx.getText()+" at "+lineNumber);
+                }
             }
 
         }else if(ctx.initializer() != null && !inForLoop && (ctx.initializer().getText().equalsIgnoreCase("true") || ctx.initializer().getText().equalsIgnoreCase("false"))){
@@ -122,6 +126,7 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
                 && ctx.assignmentExpression() != null && isInteger(ctx.assignmentExpression().getText())) {
                 try {
                     if (isHex(ctx.assignmentExpression().getText())) {
+
                         number = Integer.parseInt(ctx.assignmentExpression().getText().replaceAll("0x", ""), 16);
                     } else {
                         number = Integer.parseInt(ctx.assignmentExpression().getText());
@@ -132,9 +137,11 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
 
             // Case statements will be handled differently than normal constants
             if(!inSwitchCase) {
-                lineNumbers.add(lineNumber);
-                expressionContent.add(ctx.getText());
-                values.add(number);
+                if(compareHamming(number,0)<this.sensitivity) {
+                    lineNumbers.add(lineNumber);
+                    expressionContent.add(ctx.getText());
+                    values.add(number);
+                }
             }
 
         }else if(ctx.assignmentOperator() != null &&
@@ -159,9 +166,9 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
             if(isInteger(ctx.expression().getText())){
                 try{
                     int returnedInt = Integer.parseInt(ctx.expression().getText());
-                    if(calculateHamming(returnedInt)<this.sensitivity){
+
                         output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Low Hamming): "+ "\""+ctx.getText()+"\""+" returns low hamming distance value. ",lineNumber));
-                    }
+
                 }catch(NumberFormatException e){System.out.println("regex error in ConstantCoding.enterJumpStatement");}
             }else {
                 switch (ctx.expression().getText().toUpperCase()) {
@@ -244,8 +251,8 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
                     output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Trivial): "+ "\""+expressionContent.get(i)+"\""+" has value of 0xFF. Consider replacement.",lineNumbers.get(i)));
                     break;
                 default:
-                    if(calculateHamming(value)>sensitivity) {
-                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE, "constant_coding", "(Trivial): " + "\"" + expressionContent.get(i) + "\"" + " uses explicit integer " + value, lineNumbers.get(i)));
+                    if(compareHamming(value,0)<sensitivity) { // Probably an extraneous check
+                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE, "constant_coding", "(Trivial): " + "\"" + expressionContent.get(i) + "\"" + " uses trivial integer " + value, lineNumbers.get(i)));
                     }
                     break;
             }
