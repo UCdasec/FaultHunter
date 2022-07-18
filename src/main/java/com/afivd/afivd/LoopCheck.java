@@ -120,7 +120,7 @@ public class LoopCheck extends CBaseListener implements FaultPattern{
                 }
 
             // TODO: Case 2: The for-variable has been declared elsewhere, and is being assigned to something here in the forDeclaration slot
-            }else if(ctx.forCondition().forDeclaration() == null && ctx.forCondition().expression().assignmentExpression() != null){
+            }else if(ctx.forCondition() != null && ctx.forCondition().forDeclaration() == null && ctx.forCondition().expression() != null && ctx.forCondition().expression().assignmentExpression() != null){
                 // Need to collect for-conditional expressions and if-conditional expressions until the end
                 // If there isn't an if-conditional expression, put one after the for-loop of the for-conditional expression
 

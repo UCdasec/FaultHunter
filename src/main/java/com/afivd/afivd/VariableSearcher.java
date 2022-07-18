@@ -129,20 +129,29 @@ public class VariableSearcher extends CBaseListener{
             }
             // Count number of typeDefNames, 1 == primitive declaration, 2 == defined declaration
             int numTypeDefNames = 0;
+            int numTypeSpecifiers = 0;
             for(CParser.TypeSpecifierContext typeSpecifierContext : typeSpecifiers){
+                numTypeSpecifiers++;
                 if(typeSpecifierContext.typedefName() != null){
                     numTypeDefNames++;
                 }
             }
 
-            // Pretty sure that it cannot be more than two entries for this case
+            // Only want the variable type, so ignore any extra typeSpecifiers
+            //      * unsigned int test; <-- 3 typeSpecifiers, test is a typeDefName
+            //      * int test; <-- 2 typeSpecifiers, test is a typeDefName
+            // Need to correct for array location, and then token in string that you want
+
+            // Pretty sure that it cannot be more than two typeDefNames for this case
             if(numTypeDefNames==1){
-                tempVarType = typeSpecifiers.get(0).getText();
-                tempVarName = typeSpecifiers.get(1).typedefName().getText();
+                tempVarType = typeSpecifiers.get(numTypeSpecifiers-2).getText();
+                System.out.println("Line: "+typeSpecifiers.get(numTypeSpecifiers-2).getStart().getLine()+"Type: "+typeSpecifiers.get(numTypeSpecifiers-2).getText());
+                tempVarName = typeSpecifiers.get(numTypeSpecifiers-1).typedefName().getText();
             }else if(numTypeDefNames==2){
-                tempVarType = typeSpecifiers.get(0).typedefName().getText();
-                tempVarName = typeSpecifiers.get(1).typedefName().getText();
+                tempVarType = typeSpecifiers.get(numTypeSpecifiers-2).typedefName().getText();
+                tempVarName = typeSpecifiers.get(numTypeSpecifiers-1).typedefName().getText();
             }
+
             if(tempVarName != null && tempVarType != null){
                 variables.add(new VariableTuple(tempVarName,tempVarType,ctx.depth()));
             }

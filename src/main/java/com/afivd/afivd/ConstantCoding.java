@@ -161,7 +161,7 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
         if(ctx.getStart().getText().equalsIgnoreCase("return")){
-            if(isInteger(ctx.expression().getText())){
+            if(ctx.expression() != null && isInteger(ctx.expression().getText())){
                 try{
                     int returnedInt = Integer.parseInt(ctx.expression().getText());
                     if(calculateHamming(returnedInt)<this.sensitivity){
@@ -169,13 +169,15 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
                     }
                 }catch(NumberFormatException e){System.out.println("regex error in ConstantCoding.enterJumpStatement");}
             }else {
-                switch (ctx.expression().getText().toUpperCase()) {
-                    case "TRUE":
-                    case "FALSE":
-                        output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"constant_coding","(Low Hamming): "+ "\""+ctx.getText()+"\""+" returns low hamming distance value. ",lineNumber));
-                        break;
-                    default:
-                        break;
+                if (ctx.expression() != null) {
+                    switch (ctx.expression().getText().toUpperCase()) {
+                        case "TRUE":
+                        case "FALSE":
+                            output.appendResult(new ResultLine(ResultLine.SINGLE_LINE, "constant_coding", "(Low Hamming): " + "\"" + ctx.getText() + "\"" + " returns low hamming distance value. ", lineNumber));
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
