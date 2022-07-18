@@ -45,6 +45,8 @@ public class MainSceneController {
     private RadioButton showReplacementsToggleButton;
     @FXML
     private TextArea replacementTextArea;
+    @FXML
+    private Label currentDocumentLabel;
 
     //@FXML
     //private WebView codeWebView;
@@ -70,6 +72,7 @@ public class MainSceneController {
                     plainCode.append(i+1).append(": ").append(this.codeLines.get(i)).append("\n"); // Line number appended
                 }
                 this.codeTextArea.setText(plainCode.toString());
+                this.currentDocumentLabel.setText("Current Document: "+cFile.getName());
                 this.commentTextArea.clear();
                 this.replacementTextArea.clear();
                 this.cFilePath = cFile.getAbsolutePath();
