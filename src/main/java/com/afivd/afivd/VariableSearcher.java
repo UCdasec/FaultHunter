@@ -143,7 +143,7 @@ public class VariableSearcher extends CBaseListener{
             // Need to correct for array location, and then token in string that you want
 
             // Pretty sure that it cannot be more than two typeDefNames for this case
-            if(numTypeDefNames==1){
+            if(numTypeDefNames==1 && numTypeSpecifiers >= 2){
                 tempVarType = typeSpecifiers.get(numTypeSpecifiers-2).getText();
                 System.out.println("Line: "+typeSpecifiers.get(numTypeSpecifiers-2).getStart().getLine()+"Type: "+typeSpecifiers.get(numTypeSpecifiers-2).getText());
                 tempVarName = typeSpecifiers.get(numTypeSpecifiers-1).typedefName().getText();

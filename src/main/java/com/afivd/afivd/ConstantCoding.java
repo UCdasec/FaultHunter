@@ -101,11 +101,11 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
 
             // Case statements will be handled differently than normal constants
             if(!inSwitchCase) {
-                if(compareHamming(number,0)<this.sensitivity) {
+                //if(compareHamming(number,0)<this.sensitivity) {
                     lineNumbers.add(lineNumber);
                     expressionContent.add(ctx.getText());
                     values.add(number);
-                }
+                //}
             }
 
         }else if(ctx.initializer() != null && !inForLoop && (ctx.initializer().getText().equalsIgnoreCase("true") || ctx.initializer().getText().equalsIgnoreCase("false"))){
@@ -135,11 +135,11 @@ public class ConstantCoding extends CBaseListener implements FaultPattern {
 
             // Case statements will be handled differently than normal constants
             if(!inSwitchCase) {
-                if(compareHamming(number,0)<this.sensitivity) {
+                //if(compareHamming(number,0)<this.sensitivity) {
                     lineNumbers.add(lineNumber);
                     expressionContent.add(ctx.getText());
                     values.add(number);
-                }
+                //}
             }
 
         }else if(ctx.assignmentOperator() != null &&
