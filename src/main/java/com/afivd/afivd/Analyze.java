@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.Future;
 
+// TODO: #define, #endif, and #if statements have now been seen to completely mess up parsing, need to deal with.
+
 /**
  * The Analyze class acts as a container to run all of our created Fault patterns and also handle initially parsing
  * the passed C file using ANTLR.

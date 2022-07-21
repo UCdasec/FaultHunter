@@ -145,7 +145,7 @@ public class VariableSearcher extends CBaseListener{
             // Pretty sure that it cannot be more than two typeDefNames for this case
             if(numTypeDefNames==1 && numTypeSpecifiers >= 2){
                 tempVarType = typeSpecifiers.get(numTypeSpecifiers-2).getText();
-                System.out.println("Line: "+typeSpecifiers.get(numTypeSpecifiers-2).getStart().getLine()+"Type: "+typeSpecifiers.get(numTypeSpecifiers-2).getText());
+                //System.out.println("Line: "+typeSpecifiers.get(numTypeSpecifiers-2).getStart().getLine()+"Type: "+typeSpecifiers.get(numTypeSpecifiers-2).getText());
                 tempVarName = typeSpecifiers.get(numTypeSpecifiers-1).typedefName().getText();
             }else if(numTypeDefNames==2){
                 tempVarType = typeSpecifiers.get(numTypeSpecifiers-2).typedefName().getText();

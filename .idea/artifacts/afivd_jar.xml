@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="afivd:jar">
+  <artifact type="jar" build-on-make="true" name="afivd:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/afivd_jar</output-path>
     <root id="archive" name="afivd.jar">
       <element id="directory" name="META-INF">

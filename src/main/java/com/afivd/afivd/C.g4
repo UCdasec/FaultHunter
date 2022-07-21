@@ -835,7 +835,7 @@ SChar
     ;
 
 ComplexDefine
-    :   '#' Whitespace? 'define'  ~[#\r\n]*
+    :   '#' Whitespace? ('define' | 'ifdef' | 'endif' | 'if' | 'warning')  ~[#\r\n]*
         -> skip
     ;
 
