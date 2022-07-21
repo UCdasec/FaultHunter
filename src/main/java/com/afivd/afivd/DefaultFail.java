@@ -14,12 +14,12 @@ public class DefaultFail extends CBaseListener implements FaultPattern{
     }
 
     // ------------------------------------------ Listener Overrides ---------------------------------------------------
-    // Listener to catch 'default:' code blocks
+    // Listener to catch 'default:' code blocks with only a break in them TODO: ensure that if there is code, not to remove from testing!
     @Override
     public void enterLabeledStatement(CParser.LabeledStatementContext ctx) {
         Token token = ctx.getStart();
         int lineNumber = token.getLine();
-        if(ctx.start.getText().equalsIgnoreCase("default")){
+        if(ctx.start.getText().equalsIgnoreCase("default") && ctx.statement().jumpStatement() != null && ctx.statement().jumpStatement().getStart() != null && !ctx.statement().jumpStatement().getStart().getText().equalsIgnoreCase("break")){
             this.output.appendResult(new ResultLine(ResultLine.SINGLE_LINE,"default_fail",ctx.getText()+" uses potentially unsafe default statement. ",lineNumber));
         }
     }
