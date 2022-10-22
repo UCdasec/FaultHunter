@@ -32,6 +32,7 @@ public class DefaultFail extends CBaseListener implements FaultPattern{
                 // Do nothing, this is an else-if statement
             }else if(ctx.statement().get(1).compoundStatement() != null || ctx.statement().get(1).expressionStatement() != null){
                 // At this point we should be inside an else body
+                // TODO: If there is only a return here we could assume that it is not default fail (Ex: default: \n return;)
                 this.output.appendResult(new ResultLine(ResultLine.SINGLE_LINE, "default_fail", "\"" + ctx.Else().getText() + "\"" + " uses potentially unsafe else statement. ", ctx.Else().getSymbol().getLine()));
             }
         }

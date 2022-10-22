@@ -3,6 +3,8 @@ package com.afivd.afivd;
 import java.util.*;
 import org.antlr.v4.runtime.Token;
 
+//TODO: Update this pattern later to handle when the constant is on the left side of the conditional
+
 /**
  * The Branch class checks for trivial constants in if-expressions to better safeguard against fault injection attacks
  * Covers Fault.BRANCH
@@ -190,7 +192,8 @@ public class Branch extends CBaseListener implements FaultPattern{
         List<CParser.RelationalExpressionContext> ctxes = ctx.relationalExpression();
         if (ctxes.size() > 1 && !inForCondition) {
             if (ctx.Equal() != null && currentlyInIfStatement) {
-                if (ctxes.get(1).getText().equalsIgnoreCase("true") || ctxes.get(1).getText().equalsIgnoreCase("false")) {
+                if (ctxes.get(1).getText().equalsIgnoreCase("true") ||
+                        ctxes.get(1).getText().equalsIgnoreCase("false")) {
                     if(inOrExpression&&!inAndExpression){
                         tempResults.add(new TempResult(true,TempResult.OR_FLAG,new ResultLine(ResultLine.SINGLE_LINE,"branch","\""+ctx.getText()+"\""+" Using trivial bool in branch statement.",lineNumber)));
                     }else if (!inOrExpression&&inAndExpression){

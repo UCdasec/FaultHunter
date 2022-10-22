@@ -102,5 +102,29 @@
             <Font size="14.0" />
          </font>
       </TextArea>
+      <Label text="Execution Time:" textAlignment="CENTER" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+         <font>
+            <Font size="17.0" />
+         </font>
+         <GridPane.margin>
+            <Insets right="80.0" top="130.0" />
+         </GridPane.margin>
+      </Label>
+      <Label fx:id="executionTimeLabel" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+         <font>
+            <Font size="17.0" />
+         </font>
+         <GridPane.margin>
+            <Insets left="130.0" top="130.0" />
+         </GridPane.margin>
+      </Label>
+      <Label text="Stats:" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+         <font>
+            <Font size="19.0" />
+         </font>
+         <GridPane.margin>
+            <Insets top="70.0" />
+         </GridPane.margin>
+      </Label>
    </children>
 </GridPane>

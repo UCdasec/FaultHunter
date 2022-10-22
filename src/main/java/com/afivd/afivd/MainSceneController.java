@@ -47,6 +47,8 @@ public class MainSceneController {
     private TextArea replacementTextArea;
     @FXML
     private Label currentDocumentLabel;
+    @FXML
+    private Label executionTimeLabel;
 
     //@FXML
     //private WebView codeWebView;
@@ -94,6 +96,10 @@ public class MainSceneController {
     @FXML
     protected void runButton(){
         // Give codeLines for patterns that offer replacement
+
+        // Start timer:
+        long startTime = System.nanoTime();
+
         Analyze analyze = new Analyze(this.codeLines);
         if(analyze.loadAndParseC(this.cFilePath)){
             List<ResultLine> results = analyze.runFaultPatterns().getResults();
@@ -121,6 +127,12 @@ public class MainSceneController {
                 this.replacementTextArea.setText("No replacements!");
             }
         }else{System.out.println("Err: C File not parsed");}
+
+        // Stop timer for vulnerability analysis
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime)/1000000;  // in milliseconds
+
+        executionTimeLabel.setText(duration +" ms");
 
         // If 'Show Tree' is selected
         if (this.showTreeCheckbox.isSelected()){
