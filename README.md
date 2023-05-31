@@ -12,8 +12,11 @@ When reporting results that use the dataset or code in this repository, please c
 **The dataset and code are for research purpose only**
 
 ## Dataset 
+Our datasets used in this study can be accessed through the link below (last modified May 2023):
 
 https://mailuc-my.sharepoint.com/:f:/g/personal/wang2ba_ucmail_uc_edu/EgHHSqi_FmBMtKZvzbsLtnwB_a9fcrluOMVPfZI-datD2A?e=l4VwCN 
+
+Note: the above link need to be updated every 6 months due to certain settings of OneDrive. If you find the links are expired and you cannot access the data, please feel free to email us (boyang.wang@uc.edu). We will be update the links as soon as we can. Thanks!
 
 
 # Content 
