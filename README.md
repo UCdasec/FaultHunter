@@ -2,16 +2,20 @@
 
 ![image](https://user-images.githubusercontent.com/90657408/197356817-1784c814-904d-46f4-865a-d4ca8a8c7490.png)
 
-# Reference
+FaultHunter is designed to be an automatic fault injection vulnerability detector for C source files. The C source code is parsed using ANTLR, processed using a Java backend, and then presented in a JavaFX GUI. FaultHunter detects vulnerable 'functional blocks' of code, referred to as patterns, based on the prior classification of fault injection patterns by Riscure (See the whitepaper: https://www.riscure.com/uploads/2018/11/201708_Riscure_Whitepaper_Side_Channel_Patterns.pdf). Currently, 'Fault.ConstantCoding', 'Fault.Branch', 'Fault.DefaultFail', and 'Fault.LoopCheck' have implementations.
 
+## Reference
+When reporting results that use the dataset or code in this repository, please cite the paper below:
 
+*Logan Reichling, Ikran Warsame, Shane Reilly, Austen Brownfield, Nan Niu, Boyang Wang, “FaultHunter: Automatically Detecting Vulnerabilities in C against Fault Injection Attacks,” 2022 Symposium for Undergraduate Research in Data Science, Systems, and Security (REU Symposium 2022), Vancouver, Washington, December 6-9, 2022*
 
-# Dataset 
+**The dataset and code are for research purpose only**
+
+## Dataset 
 
 https://mailuc-my.sharepoint.com/:f:/g/personal/wang2ba_ucmail_uc_edu/EgHHSqi_FmBMtKZvzbsLtnwB_a9fcrluOMVPfZI-datD2A?e=l4VwCN 
 
 
-FaultHunter is designed to be an automatic fault injection vulnerability detector for C source files. The C source code is parsed using ANTLR, processed using a Java backend, and then presented in a JavaFX GUI. FaultHunter detects vulnerable 'functional blocks' of code, referred to as patterns, based on the prior classification of fault injection patterns by Riscure (See the whitepaper: https://www.riscure.com/uploads/2018/11/201708_Riscure_Whitepaper_Side_Channel_Patterns.pdf). Currently, 'Fault.ConstantCoding', 'Fault.Branch', 'Fault.DefaultFail', and 'Fault.LoopCheck' have implementations. 
 # Content 
 This repository contains a IntelliJ Maven project of FaultHunter using Java 11. The ANTLR library will have to downloaded and pointed to externally. See the requirements section for more details. 
 Directories:
